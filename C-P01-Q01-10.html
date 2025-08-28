@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Conhecimentos Específicos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Conhecimentos Específicos</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 1 de 10</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: '1. A avaliação da aprendizagem só é possível através da ________ e _________.',
+                options: [
+                    'a) observação / medida do desempenho',
+                    'b) competição / resultados',
+                    'c) ludicidade / observação',
+                    'd) avaliação oral / resultados'
+                ],
+                answer: 'a',
+                comment: 'A alternativa A está correta. A diferença entre avaliação da aprendizagem e performance do aluno é justamente a observação e medida de desempenho, respectivamente. No primeiro caso é feito um acompanhamento do aluno. No segundo caso é medido o conhecimento do aluno através de uma prova.'
+            },
+            {
+                question: '2. Segundo Lídia Maria Rodrigues, a avaliação da aprendizagem é um dos aspectos da educação formal que sofreu grandes mudanças.<br>Considere as afirmativas abaixo, sobre a avaliação do trabalho em sala de aula.<br>I. Quando avaliamos as aprendizagens realizadas por nossos alunos, também estamos avaliando, queiramos ou não, o ensino que ministramos.<br>II. Avalia-se também as competências e habilidades relacionadas à articulação dos conteúdos, quando se trata de filosofia, como a capacidade de compreender, problematizar e interpretar textos.<br>III. É impossível determinar previamente os aspectos que serão avaliados em sala de aula, mesmo que se defina os critérios para balizar a execução do trabalho.<br>IV. A avaliação engloba o processo educativo em sua totalidade, incluindo a participação ativa do aluno em todo processo.<br>V. A avaliação da aprendizagem e a avaliação do ensino, para serem produtivos, devem ocorrer em momentos distintos.<br>Está correto o que se afirma APENAS em',
+                options: [
+                    'a) II, III e V.',
+                    'b) I, II e IV.',
+                    'c) III, IV e V.',
+                    'd) I, III e IV.',
+                    'e) II, IV e V.'
+                ],
+                answer: 'b',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário. Afirmativa I está correta. A afirmativa descreve a relação íntima entre avaliação e planejamento. Esta é uma concepção da avaliação da aprendizagem. Afirmativa II está correta. A avaliação por habilidades e competências também está presente no autor Perrenoud. O objetivo da avaliação é a articulação de conteúdos com as competências gerais. Afirmativa III está incorreta. O planejamento serve para ter critérios e parâmetros de avaliação. Logicamente que o planejamento é flexível, mas não é impossível verificar alguns aspectos prévios a serem avaliados. Afirmativa IV está correta . Este é o sentido da avaliação da aprendizagem e da autoavaliação. A participação do aluno é muito importante para o professor verificar como está ocorrendo o processo de ensino-aprendizagem. Se somente participa o professor não é possível observar com fidedignidade a aprendizagem do aluno. Afirmativa V está incorreta. Avaliação do ensino e da aprendizagem devem ocorrem concomitantemente. Isso porque na avaliação da aprendizagem também é possível utilizar elemento para avaliar o ensino. Alternativa correta letra B.'
+            },
+            {
+                question: '3. A avaliação da aprendizagem ocupa um espaço importante tanto para o professor como para o aluno e, ao mesmo tempo, é objeto de estudo, pesquisa e reflexões. Nessa perspectiva, Furlan (2007) aponta algumas ideias para a compreensão da avaliação escolar, entre elas:',
+                options: [
+                    'a) Avaliar, no contexto escolar, deve ter como finalidade a atribuição de notas obrigatórias que decidirão se o aluno avança ou fica retido.',
+                    'b) Usar instrumentos para avaliar com intuito de descobrir o que o aluno sabe e, assim, ter a possibilidade de compará-lo com um suposto padrão de qualidade existente.',
+                    'c) A avaliação só tem sentido se é utilizada com a finalidade de saber mais sobre o aluno e puder colher elementos para que a aprendizagem escolar aconteça de forma próxima à realidade e dentro de um contexto.',
+                    'd) Ao professor cabe julgar para ter condições de realizar uma prática mais adequada e mais aceitável pelo aluno.',
+                    'e) A avaliação realizada em sala de aula deve ter como objetivo maior identificar e apontar erros e acertos do aluno, pois, assim, ela exerce a sua função classificatória.'
+                ],
+                answer: 'c',
+                comment: 'A alternativa A está incorreta. Este modelo de avaliação é o tradicional que preza pela medida de desempenho. Não está de acordo com a avaliação da aprendizagem que preconiza acompanhamento. A alternativa B está incorreta. A comparação também é uma característica da avaliação tradicional, pois está comparando o aluno com um suposto padrão de qualidade. O enunciado da questão pede uma avaliação da aprendizagem. Sendo assim, a comparação não coaduna com este termo. A alternativa C está correta. A descrição da alternativa diz respeito ao acompanhamento do aluno. Está ligada também a observação e ao monitoramento das aprendizagens construídas. É uma concepção de avaliação da aprendizagem. A alternativa D está incorreta. Somente o professor julgar ter uma prática mais adequada e sem um critério avaliativo não é possível melhorar a qualidade de ensino. A alternativa E está incorreta. Apontar erros e acerto é uma avaliação tradicional focada em desempenho. O enunciado da questão pede uma concepção de avaliação da aprendizagem.'
+            },
+            {
+                question: '4. Para Antunes, o sistema de avaliação da aprendizagem na nova pedagogia assume as seguintes características:<br>I. Centrado na aferição de conceitos passados pelo professor.<br>II. Realizado através de múltiplos meios.<br>III. Ocorre em diferentes oportunidades.<br>IV. Valoriza as competências.<br>Quais estão corretas?',
+                options: [
+                    'a) Apenas I e II.',
+                    'b) Apenas III e IV.',
+                    'c) Apenas I, II e III.',
+                    'd) Apenas II, III e IV.',
+                    'e) I, II, III e IV.'
+                ],
+                answer: 'd',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário. Afirmativa I está incorreta. A aferição centrada no professor é uma característica do modelo tradicional de foco no desempenho. A questão pede uma concepção de avaliação da aprendizagem. Afirmativa II está correta. A diversidade de instrumento é uma característica da avaliação da aprendizagem, pois é possível "ver" o aluno de diferentes formas. Afirmativa III está correta. Ocorre em diferentes oportunidades. Pode acontecer no meio de uma unidade didática para ver como os alunos estão assimilando o conteúdo. Ao final de uma unidade didática para verificar quais conteúdo foram aprendidos. É uma relação íntima entre planejamento e avaliação. Afirmativa IV está correta. Valoriza as competências pois elas estão sendo avaliadas o tempo todo, através da relação entre ensino e avaliação. A avaliação por competência pressupõe que sejam avaliadas ao longo do processo de ensino-aprendizagem. Alternativa correta letra D.'
+            },
+            {
+                question: '5. No âmbito educacional, um ponto muito discutido e que remete a muitas reflexões e questionamentos é a avaliação da aprendizagem. Méndez (2002), em seus estudos sobre o referido assunto, faz algumas afirmações, tais como:',
+                options: [
+                    'a) Avaliar somente no final, ou por unidade de tempo, ou de conteúdo, é essencial para garantir a aprendizagem.',
+                    'b) A avaliação faz parte de um programa que deve ser cumprido em um momento isolado do processo de aprendizagem, portanto, pode ser considerada como um apêndice do ensino.',
+                    'c) Na avaliação, os critérios de valorização e de correção necessariamente não precisam ser explicitados, compartilhados e negociados entre o professor e os alunos.',
+                    'd) Deve-se entender que avaliar com intenção formativa é o mesmo que medir, qualificar e corrigir.',
+                    'e) Nas tendências atuais da avaliação da aprendizagem, a preocupação centra-se mais na forma como o aluno aprende, sem descuidar da qualidade do que ele aprende.'
+                ],
+                answer: 'e',
+                comment: 'A alternativa A está incorreta. A avaliação como fenômeno pontual é própria do modelo tradicional. A questão pede uma avaliação da aprendizagem. A alternativa B está incorreta. A avaliação como um momento isolado tem características do modelo tradicional. É relacionada ao desempenho. A questão pede uma avaliação da aprendizagem. A alternativa C está incorreta. A avaliação sem serem compartilhados seus critérios com os alunos não pode ser uma avaliação da aprendizagem. Para se ter aprendizagem é preciso ter aluno. Se não tem aluno compartilhando critérios avaliativos não é possível ter avaliação da aprendizagem. A alternativa D está incorreta. Medir, qualificar e corrigir são verbos do modelo tradicional de avaliação. Não é da avaliação formativa. A alternativa E está correta. A relação entre avaliação e planejamento está colocada. Somente é possível ter avaliação da aprendizagem se ela está inserida ao longo do planejamento do professor.'
+            },
+            {
+                question: '6. Sobre as avaliações dos tipos classificatória e formativa, analise as afirmativas a seguir e dê valores Verdadeiro (V) ou Falso (F).<br>( ) A avaliação classificatória preocupa-se em fazer do aluno, um aluno cidadão.<br>( ) A avaliação classificatória só almeja, pela nota, avaliar o quanto o aluno aprendeu.<br>( ) A avaliação formativa é o todo do aluno - o seu crescimento com aquele conteúdo, se houve melhora no aprendizado; se sua vida socioeducativa melhorou.<br>( ) Na avaliação classificatória o professor avalia os alunos por meio de trabalhos com o objetivo de observar se os alunos aprenderam ou não.<br>( ) A avaliação formativa não se preocupa com o ensino aprendizagem ao longo do desenvolvimento curricular e sim por um curto período.<br>Assinale a alternativa que apresenta a sequência correta de cima para baixo.',
+                options: [
+                    'a) F, F, F, V, V',
+                    'b) V, V, V, F, V',
+                    'c) F, V, V, V, F',
+                    'd) V, F, F, F, F'
+                ],
+                answer: 'c',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário. A primeira afirmativa está incorreta. A avaliação classificatória preocupa-se em medir e comparar resultados. A segunda afirmativa II está correta . A nota diz o quanto o aluno aprendeu para a avaliação classificatória. A terceira afirmativa III está correta. A característica principal da avaliação formativa é ver o aluno como um todo e acompanhar seu aprendizado. A quarta afirmativa está correta. A avaliação classificatória diz respeito com a aferição de uma prova ou trabalho para verificar se aprenderam os conteúdos. A quinta afirmativa está incorreta. Pelo contrário, a avaliação formativa se preocupa com a aprendizagem do aluno ao longo do tempo escolar. Ela não é pontual. É processual. Alternativa correta letra C.'
+            },
+            {
+                question: '7. Hadji (2001) caracteriza a avaliação formativa da seguinte forma:',
+                options: [
+                    'a) Ser formativa, não significa que é informativa.',
+                    'b) É uma avaliação que não deve e não precisa ser seguida por uma modificação das práticas do professor.',
+                    'c) Ela informa ao professor os efeitos reais de seu trabalho pedagógico, regulando, assim, sua ação a partir disso e informa ao aluno que não somente saberá onde anda, mas poderá tomar consciência das dificuldades que encontra e tornar-se-á capaz de reconhecer e corrigir ele próprio seus erros.',
+                    'd) É simplesmente uma operação externa de controle dos fatos observáveis em relação ao aluno.',
+                    'e) É uma avaliação que precisa conformar-se a um padrão metodológico.'
+                ],
+                answer: 'c',
+                comment: 'A alternativa A está incorreta. A avaliação é formativa, mas também informa sobre as aprendizagens do aluno. A alternativa B está incorreta. A avaliação formativa está caracterizada pela relação íntima entre planejamento de ensino e processo avaliativo. A alternativa C está correta. A avaliação formativa possui a qualidade de melhorar o trabalho pedagógico, através do acompanhamento do aluno ao longo do processo de ensino-aprendizagem. A alternativa D está incorreta. A descrição da alternativa diz respeito a avaliação tradicional e não avaliação formativa. A alternativa E está incorreta. A avaliação formativa não tem padrão a ser seguido. São algumas diretrizes gerais com relação ao acompanhamento da aprendizagem do aluno.'
+            },
+            {
+                question: '8. Analise os itens abaixo, sobre a avaliação formativa:<br>I - A avaliação formativa se caracteriza por possibilitar a proximidade, o conhecimento mútuo e o diálogo entre professor e aluno;<br>II - Os resultados da avaliação formativa servirão de base para identificar como o processo de aprendizagem tem acontecido;<br>III - O foco principal da avaliação formativa é a obtenção de notas e somatórias.<br>Dos itens acima:',
+                options: [
+                    'a) Apenas o item I está correto.',
+                    'b) Apenas os itens I e II estão corretos.',
+                    'c) Apenas os itens I e III estão corretos.',
+                    'd) Apenas os itens II e III estão corretos.',
+                    'e) Todos os itens estão corretos.'
+                ],
+                answer: 'b',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário. Afirmativa I está correta. A tríade conhecimento, diálogo e professor-aluno fazem parte da avaliação formativa. Afirmativa II está correta. Exatamente. Na avaliação formativa, o planejamento de ensino está intimamente ligado ao processo avaliativo. Afirmativa III está incorreta. Esta característica é própria da avaliação somativa que diz respeito a medição de resultados. Alternativa correta letra B.'
+            },
+            {
+                question: '9. No contexto da associação “concepção de educação e a avaliação”, leia e analise os itens abaixo:<br>ITEM I A avaliação formativa pode favorecer os processos de autoavaliação dos alunos.<br>ITEM II A avaliação formativa é aquela que orienta os estudantes para a realização de seus trabalhos e de suas aprendizagens, ajudando-os a localizar suas dificuldades e suas potencialidades, redirecionando-os em seus percursos.<br>ITEM III A avaliação faz parte do cotidiano das tarefas propostas, das observações atentas do professor, das práticas de sala de aula.<br>Dos itens supra apresentados, pode-se CORRETAMENTE julgar que:',
+                options: [
+                    'a) Apenas o item II é falso.',
+                    'b) Os itens I e III são falsos.',
+                    'c) Somente o item I é verdadeiro.',
+                    'd) Os itens I, II e III são verdadeiros.'
+                ],
+                answer: 'd',
+                comment: 'Analisaremos os itens pela ordem e colocaremos a alternativa correta ao final do comentário. ITEM I está correto. A avaliação formativa por levar em consideração as aprendizagens realizadas pelo aluno ao longo do processo de ensino pode favorecer a autoavaliação. Isso por que o estudante toma consciência de "como está" e "como ficará". Este processo de consciência ocorre pelo acompanhamento do professor no percurso de aprendizagens do aluno. ITEM II está correto. Exatamente. A descrição da alternativa descreve um acompanhamento do estudante. Isso é próprio da avaliação formativa. ITEM III está correto. A descrição da alternativa preconiza uma diversidade de instrumento a serem utilizados pelo professor em sala de aula. Alternativa correta letra D.'
+            },
+            {
+                question: '10. A avaliação é parte de um processo pedagógico, que implica na própria formulação dos objetivos da ação educativa, na definição de seus conteúdos e métodos, entre outros. Sendo parte desse processo a mesma pode ser de caráter formativo ou somativo.<br>Considerando o enunciado, analise as afirmativas e marque C para CERTO e E para ERRADO:<br>( ) A avaliação formativa é utilizada para uma apreciação final sobre o que o aluno pode obter em um determinado período.<br>( ) A avaliação somativa é utilizada ao longo do processo pedagógico, no sentido de acompanhamento do desenvolvimento e reorientação da aprendizagem do aluno.<br>( ) A avaliação somativa pode levar a processos de exclusão e classificação dependendo da forma como o professor encara os resultados.<br>( ) A avaliação formativa é aquela em que o professor deve estar atento aos processos e às aprendizagens dos seus alunos durante o processo.<br>A sequência está correta em:',
+                options: [
+                    'a) E,E,C,C.',
+                    'b) C,C,E,E.',
+                    'c) E,E,E,E.',
+                    'd) E,C,C,C.'
+                ],
+                answer: 'a',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário. Afirmativa I está incorreta. A afirmativa descreve característica da avaliação somativa e não formativa. Afirmativa II está incorreta. A afirmativa descreve a avaliação formativa e não somativa. Afirmativa III está correta. A avaliação somativa é aferição de resultados. Estes resultados podem ser utilizados em forma de ranking ou comparação entre alunos. Afirmativa IV está correta. A avaliação formativa tem relação com acompanhamento do estudante ao longo do processo de ensino-aprendizagem. Alternativa correta letra A.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Função para renderizar uma questão
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question.replace(/\n/g, '<br>')}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(97 + i)); // Usa 'a', 'b', 'c', ...
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = optionBtn.getAttribute('data-letter');
+                        checkAnswer(index);
+                        updateQuizState();
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            if (userAnswers[index]) {
+                checkAnswer(index, true);
+            }
+            updateQuizState();
+        }
+
+        // Função para verificar a resposta e exibir o resultado/comentário
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswer = userAnswers[index];
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswer && userAnswer.toLowerCase() === correctLetter) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true;
+                const optionLetter = btn.getAttribute('data-letter').toLowerCase();
+                if (optionLetter === correctLetter) {
+                    btn.classList.add('correct');
+                }
+                if (optionLetter === userAnswer && optionLetter !== correctLetter) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        // Função para atualizar os botões de navegação e o contador
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = !!userAnswers[currentQuestionIndex];
+            
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        // Função para mostrar o placar final
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        // Listeners para a navegação
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Inicia o quiz
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
