@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Português</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            transition: background-color 0.3s ease;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .correct {
+            background-color: #dcfce7;
+            border-left: 5px solid #10b981;
+        }
+        .incorrect {
+            background-color: #fee2e2;
+            border-left: 5px solid #ef4444;
+        }
+        .answer-btn {
+            background-color: #f1f5f9;
+            color: #334155;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            text-align: left;
+        }
+        .answer-btn:hover:not(.checked) {
+            background-color: #e2e8f0;
+            transform: translateY(-2px);
+        }
+        .answer-btn.checked {
+            cursor: not-allowed;
+        }
+        .progress-bar {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            transition: width 0.5s ease;
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .commentary-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .commentary-container.show {
+            max-height: 1000px; /* A large enough value to accommodate all commentary */
+            transition: max-height 0.75s ease-in;
+        }
+        .question-content {
+            white-space: pre-wrap;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 1rem;
+        }
+        .commentary-content {
+            white-space: pre-wrap;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+<div id="quiz-app" class="container">
+    <!-- Seção do Quiz -->
+    <div id="quiz-container" class="card">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800">Questão <span id="question-number"></span></h2>
+            <div class="text-lg font-semibold text-gray-600" id="score-display">Pontos: 0 / 0</div>
+        </div>
+        <div class="progress-bar mb-6">
+            <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
+        </div>
+        <div id="question-text" class="text-lg md:text-xl font-medium text-gray-700 mb-6 question-content"></div>
+        <div id="options-container" class="grid gap-4">
+            <!-- Opções serão injetadas aqui pelo JavaScript -->
+        </div>
+
+        <div id="commentary-container" class="commentary-container mt-6 bg-gray-50 rounded-lg p-4 transition-all duration-500 ease-in-out">
+            <div id="commentary-text" class="commentary-content text-gray-700 text-sm md:text-base"></div>
+        </div>
+
+        <div class="flex justify-between items-center mt-6 pt-6 border-t border-gray-200">
+            <button id="prev-btn" class="px-6 py-2 rounded-full font-semibold text-gray-600 bg-gray-200 hover:bg-gray-300 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+                Anterior
+            </button>
+            <button id="next-btn" class="px-6 py-2 rounded-full font-semibold text-white bg-blue-500 hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400">
+                Próximo
+            </button>
+        </div>
+    </div>
+
+    <!-- Seção de resultados finais -->
+    <div id="results-container" class="card hidden text-center">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Quiz Concluído!</h2>
+        <p class="text-xl text-gray-600 mb-6">Sua pontuação final:</p>
+        <div id="final-score" class="text-6xl font-extrabold text-blue-500 mb-6"></div>
+        <div id="final-comment" class="text-lg text-gray-700 mb-8"></div>
+        <button id="restart-btn" class="px-8 py-3 rounded-full font-semibold text-white bg-green-500 hover:bg-green-600 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400">
+            Reiniciar Quiz
+        </button>
+    </div>
+
+    <!-- Modal de alerta customizado -->
+    <div id="alert-modal" class="modal fixed inset-0 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full text-center">
+            <h3 class="text-lg font-bold mb-4">Atenção</h3>
+            <p class="text-gray-700 mb-6">Por favor, selecione uma opção antes de continuar.</p>
+            <button onclick="document.getElementById('alert-modal').classList.add('hidden')" class="px-6 py-2 bg-blue-500 text-white font-semibold rounded-full hover:bg-blue-600 transition-all duration-300">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Objeto JSON com as perguntas, opções, respostas corretas e comentários
+        const quizData = [
+            {
+                id: 11,
+                question: 'No trecho “<b>Agora</b> estão falando em inteligência artificial.”, o item em destaque fornece à oração um sentido',
+                options: [
+                    'locativo.',
+                    'quantitativo.',
+                    'temporal.',
+                    'intensificador.',
+                    'condicional.'
+                ],
+                correctAnswerIndex: 2,
+                commentary: '"agora" é um advérbio de tempo, indica o momento em que o verbo "falando" está em curso.\n\nGabarito letra C.'
+            },
+            {
+                id: 12,
+                question: 'Considere o seguinte excerto:\n“Nos Estados Unidos, os casos de TDAH (transtorno de déficit de atenção e hiperatividade) dobraram na última década. E essa condição, até então restrita a crianças, alcançou também jovens adultos – que hoje enchem o TikTok de vídeos sobre ela e os remédios que tomam para tentar contê-la.”.\nAnalise a assertiva e assinale se é correta ou incorreta.\n“Nos Estados Unidos” é um adjunto adverbial locativo e poderia estar no fim da oração, após “década”, sem prejuízo gramatical ou de sentido.',
+                options: [
+                    'Correto',
+                    'Incorreto'
+                ],
+                correctAnswerIndex: 0,
+                commentary: 'Sim, "locativo" porque indica "lugar".\n\nO adjunto adverbial tem a característica de poder ser deslocado na oração. Sua posição natural na ordem direta é vir ao final do período, se vier deslocado, será marcado por vírgula(s).\n\nNos Estados Unidos, os casos de TDAH (transtorno de déficit de atenção e hiperatividade) dobraram\nOs casos de TDAH (transtorno de déficit de atenção e hiperatividade) dobraram nos Estados Unidos\n\nGabarito: letra A.'
+            },
+            {
+                id: 13,
+                question: 'A função da palavra “este”, no contexto apresentado, é a de indicar sobre qual mundo se está falando. Trata-se, portanto, de um pronome:<br><br><img src="Tira_Mafalda.jpg" alt="Tira da Mafalda." class="mx-auto rounded-lg shadow-md mt-4">',
+                options: [
+                    'pessoal.',
+                    'relativo.',
+                    'demonstrativo.',
+                    'indefinido.',
+                    'interrogativo.'
+                ],
+                correctAnswerIndex: 2,
+                commentary: '"ESTE" é pronome demonstrativo, foi usado para indicar o mundo da pessoa que fala, expressa noção de "espaço".\n\nGabarito: letra C'
+            },
+            {
+                id: 14,
+                question: 'As redes sociais tornaram-se as principais plataformas de geração e distribuição de conteúdo, ofuscando os antigos e poderosos canais de TV, rádios e jornais. Então, não surpreende que <u>sua</u> influência venha chamando a atenção dos governos e da sociedade, lá fora e aqui. (...) Ainda que as pessoas, em geral, tenham percebido diferenças em seus feeds, muita gente ainda não entendeu o alcance e as implicações das mudanças recentes, que se aceleraram nos últimos 12 meses. (...)\nTendo em vista aspectos linguísticos que constituem o texto, analise o item a seguir como verdadeiro ou falso.\nNo trecho “Então, não surpreende que <u>sua</u> influência venha chamando a atenção dos governos e da sociedade, lá fora e aqui.”, o pronome destacado retoma, anaforicamente, “redes sociais”, empregada no período anterior.',
+                options: [
+                    'Verdadeiro',
+                    'Falso'
+                ],
+                correctAnswerIndex: 0,
+                commentary: 'Com pronome possessivo, devemos perguntar: Influência de quem?\nO parágrafo se refere à influência das redes sociais.\nAs redes sociais tornaram-se as principais plataformas de geração e distribuição de conteúdo, ofuscando os antigos e poderosos canais de TV, rádios e jornais. Então, não surpreende que sua influência venha chamando a atenção dos governos e da sociedade\n\nGabarito: letra A.'
+            },
+            {
+                id: 15,
+                question: 'Observe a colocação pronominal na oração: “Lembre-se de que ninguém é chato porque quer”. Assinale a alternativa que justifique corretamente esse uso.',
+                options: [
+                    'A oração em análise tem o pronome em posição proclítica, pois, ele ocorre antes do verbo.',
+                    'A oração em análise tem o pronome em posição proclítica, pois, ele ocorre junto do hífen.',
+                    'A oração em análise tem o pronome em posição mesoclítica, ou seja, o verbo está conjugado no futuro do pretérito.',
+                    'A oração em análise tem o pronome em posição enclítica, ou seja, quando o pronome ocorre logo após o verbo e ambos são unidos por meio de hífen.',
+                    'A oração em análise tem o pronome em posição enclítica, assim sendo, não se utiliza de hífen e o pronome ocorre entre dois verbos.'
+                ],
+                correctAnswerIndex: 3,
+                commentary: 'Relembremos o nome das posições:\nPróclise: pronome antes do verbo: Se esforce\nÊnclise: pronome depois do verbo: Esforce-se\nMesóclise: pronome no meio do verbo: Esforçar-se-ia\nNote que usamos o hífen para ligar o pronome ao verbo.\n\nVejamos a questão:\n“Lembre-SE de que ninguém é chato porque quer”.\nO pronome “se” está após o verbo, então a posição é enclítica.\n\nGabarito: letra D'
+            },
+            {
+                id: 16,
+                question: 'Sendo sincero, a fragilidade da velhice pode ser vantajosa. Mas também é real.\nInforme se é verdadeiro (V) ou falso (F) o que se afirma a seguir.\nEm “Mas também é real.” no terceiro parágrafo, o item destacado estabelece, em relação ao trecho anterior, o sentido de oposição.',
+                options: [
+                    'Verdadeiro.',
+                    'Falso.'
+                ],
+                correctAnswerIndex: 0,
+                commentary: '"mas" é conjunção coordenativa adversativa, indica oposição, equivale a: entretanto, todavia, contudo, no entanto, porém.\n\nGabarito: letra A.'
+            },
+            {
+                id: 17,
+                question: 'Na frase “Estudou duro, portanto obteve a merecida aprovação” a palavra sublinhada tem sentido de:',
+                options: [
+                    'Conclusão.',
+                    'Alternância.',
+                    'Negação.',
+                    'Restrição.',
+                    'Adição.'
+                ],
+                correctAnswerIndex: 0,
+                commentary: '"Portanto" está na lista das conjunções coordenativas conclusivas; portanto, indica conclusão.\n\nGabarito: letra A'
+            },
+            {
+                id: 18,
+                question: 'Analise o período que segue: “A novidade, porém, é que, logo abaixo de um lance mágico do Messi, o algoritmo, agora, mostra um ‘frango’ em uma pelada da periferia, postado por alguém fora de sua rede.”. Neste, o conectivo destacado pode ser substituído, sem prejuízo de sentido, por todas as opções seguintes, EXCETO',
+                options: [
+                    'entretanto.',
+                    'no entanto.',
+                    'portanto.',
+                    'contudo.',
+                    'todavia.'
+                ],
+                correctAnswerIndex: 2,
+                commentary: '"porém" é conjunção coordenativa adversativa, indica oposição, equivale a: entretanto, todavia, contudo, no entanto.\n"portanto" é conjunção coordenativa conclusiva, não poderia substituir "porém".\n\nGabarito letra C.'
+            },
+            {
+                id: 19,
+                question: 'Considere os fragmentos: “Embora o mistério não esteja decifrado, um fato é inegável: os pombos-correios são aves singulares”. “Constituem uma raça diferente dos pombos comuns: embora semelhantes visualmente, apresentam uma estrutura mais avantajada...” Marque a alternativa que apresenta a classe gramatical do vocábulo “embora” nas duas ocorrências nesses contextos:',
+                options: [
+                    'advérbio.',
+                    'adjetivo.',
+                    'preposição.',
+                    'conjunção.'
+                ],
+                correctAnswerIndex: 3,
+                commentary: 'Reforço aqui a necessidade e o benefício de decorar as conjunções. "Embora" está na lista das conjunções subordinativas concessivas; indica uma ressalva, um fato oposto ao que está na outra oração, mas que não impede sua realização.\n\nGabarito: letra D'
+            },
+            {
+                id: 20,
+                question: 'No período "EMBORA pareça estar em contradição com a serenidade, a iniciativa, como ação, é a resposta imediata para a paz interior", a conjunção "EMBORA" expressa uma ideia de:',
+                options: [
+                    'Oposição.',
+                    'Conclusão.',
+                    'Concessão.',
+                    'Explicação.'
+                ],
+                correctAnswerIndex: 2,
+                commentary: '"Embora" é uma conjunção que expressa "concessão".\n\nGabarito: letra C.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = {};
+
+        const questionNumberElem = document.getElementById('question-number');
+        const questionTextElem = document.getElementById('question-text');
+        const optionsContainerElem = document.getElementById('options-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const scoreDisplayElem = document.getElementById('score-display');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results-container');
+        const finalScoreElem = document.getElementById('final-score');
+        const finalCommentElem = document.getElementById('final-comment');
+        const restartBtn = document.getElementById('restart-btn');
+        const progressBarFill = document.getElementById('progress-fill');
+        const commentaryContainer = document.getElementById('commentary-container');
+        const commentaryTextElem = document.getElementById('commentary-text');
+        const alertModal = document.getElementById('alert-modal');
+
+        function updateUI() {
+            // Esconde o botão 'Anterior' na primeira questão
+            prevBtn.classList.toggle('invisible', currentQuestionIndex === 0);
+            
+            // Atualiza o texto do botão 'Próximo' para 'Concluir' na última questão
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.textContent = 'Concluir';
+            } else {
+                nextBtn.textContent = 'Próximo';
+            }
+        }
+
+        function loadQuestion() {
+            const currentQuestion = quizData[currentQuestionIndex];
+            
+            // Atualiza o número da questão e o texto da pergunta
+            questionNumberElem.textContent = currentQuestion.id;
+            questionTextElem.innerHTML = currentQuestion.question;
+            
+            // Limpa as opções anteriores
+            optionsContainerElem.innerHTML = '';
+            
+            // Cria os botões de opção
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                const optionText = String.fromCharCode(65 + index) + ') ' + option;
+                button.textContent = optionText;
+                button.classList.add('answer-btn', 'w-full', 'px-6', 'py-4', 'rounded-xl', 'font-medium', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-blue-400');
+                
+                // Adiciona um listener para a seleção de resposta
+                button.addEventListener('click', () => handleAnswer(index, button));
+                
+                optionsContainerElem.appendChild(button);
+            });
+
+            // Atualiza o estado da UI (botões, etc.)
+            updateUI();
+            updateScoreDisplay();
+            updateProgressBar();
+            
+            // Esconde o comentário ao carregar uma nova questão
+            commentaryTextElem.textContent = '';
+            commentaryContainer.classList.remove('show');
+            
+            // Se a questão já foi respondida, exibe a resposta selecionada e o comentário
+            if (userAnswers[currentQuestion.id] !== undefined) {
+                showFeedback(userAnswers[currentQuestion.id]);
+            }
+        }
+
+        function handleAnswer(selectedIndex) {
+            const currentQuestion = quizData[currentQuestionIndex];
+            const isCorrect = selectedIndex === currentQuestion.correctAnswerIndex;
+
+            // Salva a resposta do usuário
+            userAnswers[currentQuestion.id] = selectedIndex;
+
+            // Incrementa a pontuação se a resposta estiver correta e ainda não foi computada
+            if (isCorrect && !currentQuestion.isAnsweredCorrectly) {
+                score++;
+                currentQuestion.isAnsweredCorrectly = true;
+            } else if (!isCorrect && currentQuestion.isAnsweredCorrectly) {
+                // Se a resposta mudou de correta para incorreta, decrementa a pontuação
+                score--;
+                currentQuestion.isAnsweredCorrectly = false;
+            }
+
+            // Exibe o feedback visual e o comentário
+            showFeedback(selectedIndex);
+            updateScoreDisplay();
+        }
+
+        function showFeedback(selectedIndex) {
+            const currentQuestion = quizData[currentQuestionIndex];
+            const options = optionsContainerElem.querySelectorAll('button');
+
+            options.forEach((button, index) => {
+                button.classList.add('checked');
+                button.disabled = true;
+                
+                if (index === currentQuestion.correctAnswerIndex) {
+                    button.classList.add('correct');
+                }
+                
+                if (index === selectedIndex && index !== currentQuestion.correctAnswerIndex) {
+                    button.classList.add('incorrect');
+                }
+            });
+
+            // Exibe o comentário
+            commentaryTextElem.textContent = currentQuestion.commentary;
+            commentaryContainer.classList.add('show');
+        }
+
+        function updateScoreDisplay() {
+            const answeredCount = Object.keys(userAnswers).length;
+            scoreDisplayElem.textContent = `Pontos: ${score} / ${answeredCount}`;
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
+            progressBarFill.style.width = `${progress}%`;
+        }
+        
+        function showFinalResults() {
+            quizContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+            finalScoreElem.textContent = `${score} / ${quizData.length}`;
+            
+            let finalComment = '';
+            const percentage = (score / quizData.length) * 100;
+            if (percentage >= 80) {
+                finalComment = 'Excelente trabalho! Você demonstrou um ótimo conhecimento.';
+            } else if (percentage >= 50) {
+                finalComment = 'Bom trabalho! Continue praticando para melhorar.';
+            } else {
+                finalComment = 'Você pode melhorar. Revise o conteúdo e tente novamente!';
+            }
+            finalCommentElem.textContent = finalComment;
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = {};
+            quizData.forEach(q => q.isAnsweredCorrectly = false);
+            quizContainer.classList.remove('hidden');
+            resultsContainer.classList.add('hidden');
+            loadQuestion();
+            updateScoreDisplay();
+        }
+
+        // Event Listeners for navigation buttons
+        nextBtn.addEventListener('click', () => {
+            if (userAnswers[quizData[currentQuestionIndex].id] === undefined) {
+                alertModal.classList.remove('hidden');
+                return;
+            }
+
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showFinalResults();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        });
+        
+        restartBtn.addEventListener('click', resetQuiz);
+
+        // Initial load
+        loadQuestion();
+    });
+</script>
+
+</body>
+</html>
