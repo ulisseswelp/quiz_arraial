@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Conhecimentos Específicos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.15rem; /* Ajustado para melhor leitura */
+            font-weight: 500; /* Ajustado */
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+            line-height: 1.5;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+        
+        .option-button:disabled {
+             cursor: not-allowed;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            padding: 2rem;
+            background-color: #eef2ff;
+            border-radius: 1rem;
+        }
+        
+        #final-score h2 {
+           font-size: 1.75rem;
+           font-weight: 700;
+           color: #1f2937;
+           margin-bottom: 0.5rem;
+        }
+        
+        #final-score p {
+           font-size: 1.1rem;
+           color: #374151;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Conhecimentos Específicos</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            <!-- As questões serão injetadas aqui pelo JavaScript -->
+        </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 1 de 10</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: '11. Atente para o seguinte excerto sobre avaliação da aprendizagem: “A avaliação praticada nas escolas é a avaliação da culpa e as notas praticadas são utilizadas para classificar os alunos, onde são comparados desempenhos e não os objetivos que se pretende atingir. Esta prática de avaliação se explícita por uma relação autoritária e conservadora que permite ao professor manter a disciplina e atenção dos alunos, desta forma a avaliação da aprendizagem torna-se um instrumento de controle que tudo pode, de forma que coercitiva o aluno, não dando-lhe alternativas que desenvolva meios para que alcance o aprendizado”. LUCKESI, Cipriano Carlos. Avaliação da aprendizagem escolar. 18ª ed. São Paulo: Cortez editora, 2006.<br><br>Utilizando-se como referência inicial o texto acima, é correto concluir-se que, para o autor, avaliação é',
+                options: [
+                    'a) um juízo de qualidade sobre dados relevantes, tendo em vista uma tomada de decisão.',
+                    'b) uma verificação dos objetivos não alcançados pelos alunos, tendo em vista determinar o grau de fracasso do professor.',
+                    'c) um instrumento para organizar as turmas, tendo em vista a formação de grupos homogêneos.',
+                    'd) um processo de controle dos níveis de aprendizagem, tendo em vista coletar informações e selecionar os indivíduos.'
+                ],
+                answer: 'A',
+                comment: '<b>A alternativa A está correta.</b> A avaliação tem relação com a interpretação que se faz dos dados coletados na sala de aula. Além disso, também tem relação com o planejamento de ensino, pois pode mudar caminhos para chegar ao melhor aprendizado do aluno.<br><br><b>A alternativa B está incorreta.</b> Esta forma de avaliação não favorece a melhoria do ensino, uma vez que a avaliação da aprendizagem deve servir para modificar o planejamento e não culpabilizar o docente.<br><br><b>A alternativa C está incorreta.</b> A avaliação não deve servir para a formação de supostos grupos homogêneos, pois isso é classificação e comparação de alunos.<br><br><b>A alternativa D está incorreta.</b> A seleção dos indivíduos é uma possibilidade da avaliação tradicional. Na avaliação da aprendizagem não é este objetivo. É o acompanhamento e a aprendizagem.'
+            },
+            {
+                question: '12. A equipe de uma escola de ensino fundamental buscou alinhar suas práticas de avaliação às indicações apresentadas por Luckesi (2005), em suas reflexões sobre avaliação da aprendizagem escolar, priorizando o desenvolvimento dos educandos. Das alternativas a seguir, assinale aquela que expressa, corretamente, o pensamento do autor a respeito desse tema.',
+                options: [
+                    'a) Avaliar é um instrumento fundamental para apurar a aprendizagem dos alunos e apoiar o processo de decisão sobre promoção ou retenção.',
+                    'b) Verificar é a forma ideal para os professores apurarem o desempenho dos alunos, utilizando instrumentos de medida adequados.',
+                    'c) Avaliar ou verificar dizem respeito aos mesmos processos e o que importa é o instrumento utilizado pelo professor para aferir a aprendizagem do aluno.',
+                    'd) Avaliar é construir instrumentos comuns a serem aplicados aos alunos das mesmas séries, que apurem os resultados de aprendizagem, para conhecimento da escola, dos pais e dos professores.',
+                    'e) Avaliar o aproveitamento escolar é um ato dinâmico que qualifica e subsidia o reencaminhamento da ação docente, possibilitando consequências no sentido da construção dos resultados que se deseja.'
+                ],
+                answer: 'E',
+                comment: '<b>A alternativa A está incorreta.</b> O objetivo de promoção ou retenção do aluno é relativo ao modelo avaliativo tradicional. Na avaliação da aprendizagem é justamente verificar possibilidades de mudança de planejamento de ensino.<br><br><b>A alternativa B está incorreta.</b> A verificação como sinônimo de aferição não é o ideal, pois isso não coloca em mudança o planejamento pedagógico do professor.<br><br><b>A alternativa C está incorreta.</b> Avaliar não é sinônimo de verificar. Avaliar por ser acompanhar o progresso do aluno e modificar rotas a serem seguidas. A avaliação como sinônimo de verificação é o modelo tradicional. Não é isto que a questão pede.<br><br><b>A alternativa D está incorreta.</b> A descrição da alternativa diz respeito ao modelo tradicional de aferição de resultados a serem entregues às famílias. Não é este o objetivo da avaliação da aprendizagem que é encontrar caminhos para as dificuldades do aluno e do planejamento de ensino.<br><br><b>A alternativa E está correta.</b> O dinamismo entre a avaliação e a ação docente qualificou esta alternativa como correta. Isso porque a avaliação deve subsidiar o trabalho pedagógico realizado pelo professor. É uma relação íntima entre planejamento e avaliação.'
+            },
+            {
+                question: '13. Segundo Luckesi, analise as seguintes assertivas em relação à avaliação da aprendizagem escolar:<br>I. Implica estar disponível para acolher nossos educandos no estado em que estejam, para, a partir daí, poder auxiliá-los em sua trajetória de vida.<br>II. Implica em diagnosticar e renegociar permanentemente o melhor caminho para o desenvolvimento, o melhor caminho para a vida.<br>III. Não implica aprovação ou reprovação do educando, mas sim orientação permanente para o seu desenvolvimento, tendo em vista tornar-se o que o seu ser pede.<br><br>Quais estão corretas?',
+                options: [
+                    'a) Apenas I.',
+                    'b) Apenas II.',
+                    'c) Apenas III.',
+                    'd) Apenas I e II.',
+                    'e) I, II e III.'
+                ],
+                answer: 'E',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário.<br><br><b>Afirmativa I está correta.</b> O professor deve partir da realidade do aluno. Não deve pensar o aluno ideal, mas vinculado a sua realidade concreta.<br><br><b>Afirmativa II está correta.</b> Esta é uma relação entre avaliação de planejamento. Conforme vão surgindo os resultados das aprendizagens dos alunos, o professor vai replanejando suas aulas.<br><br><b>Afirmativa III está correta.</b> Avaliação como acompanhamento. O importante não é a aprovação ou reprovação. É acompanhar o aluno para um processo ascendente de aprendizagem.<br><br><b>Alternativa correta letra E.</b>'
+            },
+            {
+                question: '14. “A prática escolar usualmente denominada de avaliação da aprendizagem pouco tem a ver com avaliação. Ela constitui-se muito mais de provas/exames do que de avaliação. Provas/exames têm por finalidade, no caso da aprendizagem escolar, verificar o nível de desempenho do educando em determinado conteúdo (entendendo por conteúdo o conjunto de informações, habilidades motoras, habilidades mentais, convicções, criatividade etc.) e classificá-lo em termos de aprovação/reprovação (para tanto, podendo utilizar-se de níveis variados, tais como: superior, médio-superior, médio, médio-inferior, inferior, sem rendimento; ou notas que variam de O a 10, ou coisa semelhante). Desse modo, provas/exames separam os "eleitos" dos "não eleitos". Assim sendo, essa prática exclui uma parte dos alunos e admite, como "aceitos", outra. Manifesta-se, pois, como uma prática seletiva”. (LUCKESI, Cipriano Carlos. Avaliação da aprendizagem na escola: reelaborando conceitos e criando a prática. 2 ed. Salvador: Malabares Comunicações e eventos, 2005).<br><br>Quando um professor fala em avaliação, muitos alunos ficam com medo ou apreensivos quanto ao que vai ser cobrado em uma prova. Esse é um momento muito tenso e de muita pressão. Tratada como método classificatório e a serviço da exclusão, a avaliação escolar muitas vezes deixa de ser um meio de tornar os atos de ensinar e aprender produtivos e satisfatórios e passa a ser um processo de constatação final de assimilação conteúdos. Para superar esse quadro e fazer do processo de avaliação um instrumento a serviço da aprendizagem, é necessário que ela seja um ato de:',
+                options: [
+                    'a) Julgamento final dos conhecimentos dos alunos.',
+                    'b) Reposição de conteúdos perdidos pelos alunos.',
+                    'c) Julgamento decisivo dos processos cognitivos do aluno.',
+                    'd) Punição aos erros cometidos pelo aluno durante o processo de aprendizagem.',
+                    'e) Acolhimento, tendo em vista a compreensão e a transformação da realidade do aluno.'
+                ],
+                answer: 'E',
+                comment: '<b>A alternativa A está incorreta.</b> O julgamento final como uma avaliação pontual é próprio do modelo tradicional de ensino. Não é de Luckesi.<br><br><b>A alternativa B está incorreta.</b> A reposição de conteúdos perdidos diz respeito mais ao processo avaliativo de Libâneo do que de Luckesi.<br><br><b>A alternativa C está incorreta.</b> O termo "julgamento decisivo" inviabilizou a alternativa. Para Luckesi, a avaliação é um processo aberto e constante de acompanhamento do aluno.<br><br><b>A alternativa D está incorreta.</b> O termo "punição" na coaduna com a visão de Luckesi para avaliação. Para o autor, a avaliação deve ser promotora de qualidade do aluno e não um elemento de punição.<br><br><b>A alternativa E está correta.</b> Luckesi parte do pressuposto de entender a realidade do aluno. Não pensar o aluno como ideal. Pensar o aluno em sua realidade e partir deste momento pensar possíveis transformações no ensino, buscando a melhor qualidade educativa para o aluno.'
+            },
+            {
+                question: '15. Avaliar a aprendizagem do aluno não é uma tarefa fácil e envolve muitos fatores. Assinale a alternativa que apresenta uma afirmação de Cipriano Luckesi, um dos estudiosos desse tema.',
+                options: [
+                    'a) O processo de verificação da aprendizagem não difere do ato de avaliar a aprendizagem do aluno.',
+                    'b) A avaliação da aprendizagem escolar adquire o seu sentido na medida em que se articula com um projeto pedagógico e com um projeto de ensino.',
+                    'c) A atenção centrada em provas, exames e notas não apresenta desdobramentos na relação professor/aluno.',
+                    'd) A avaliação, necessariamente, não subsidia as decisões sobre a aprendizagem do aluno.',
+                    'e) A pedagogia do exame, que centraliza toda a atenção para a realização de exames, sempre auxilia na aprendizagem do aluno.'
+                ],
+                answer: 'B',
+                comment: '<b>A alternativa A está incorreta.</b> Pelo contrário, a verificação da aprendizagem é diferente de avaliar a aprendizagem. A primeira diz respeito ao momento pontual e focado no resultado. A segunda é referente ao acompanhamento do aluno ao longo do processo de ensino-aprendizagem.<br><br><b>A alternativa B está correta.</b> Exatamente. A avaliação deve ter uma relação íntima com o planejamento pedagógico do professor e da escola como um todo.<br><br><b>A alternativa C está incorreta.</b> Apresenta desdobramento. São sérios. Pode ocorrer a exclusão do aluno, evasão escolar, fracasso escolar. Isso porque os resultados podem ser utilizados para classificação e ranqueamento.<br><br><b>A alternativa D está incorreta.</b> Pelo contrário, a avaliação pode subsidiar a aprendizagem do aluno pela sua relação íntima com o planejamento pedagógico.<br><br><b>A alternativa E está incorreta.</b> Muitas vezes não auxilia. Isso por que os exames são focados apenas no resultado e não no acompanhamento do aluno.'
+            },
+            {
+                question: '16. Não basta avaliar a aprendizagem priorizando a questão do aspecto quantitativo (a nota) sobre o qualitativo (o que foi apreendido). Luckesi fala a respeito disso quando diz: “a característica que de imediato se evidencia na nossa prática educativa é a de que a avaliação da aprendizagem ganha um espaço tão amplo nos processos de ensino que nossa prática educativa escolar passou a ser direcionada por uma Pedagogia',
+                options: [
+                    'a) de Redirecionamento”.',
+                    'b) do Exame”.',
+                    'c) da Subjetividade”.',
+                    'd) Objetiva”.',
+                    'e) Qualitativa”.'
+                ],
+                answer: 'B',
+                comment: '<b>A alternativa A está incorreta.</b> Se fosse ligada ao redirecionamento poderia estar ligada ao planejamento. Luckesi está criticado a forma como é feita tradicionalmente.<br><br><b>A alternativa B está correta.</b> A Pedagogia do Exame é o foco excessivo na avaliação como medida de desempenho. Está de acordo com a crítica de Luckesi.<br><br><b>A alternativa C está incorreta.</b> Se fosse da subjetividade, levaria em conta a aprendizagem do aluno. A crítica que é feita por Luckesi não mostra que algumas escolas não estão preocupadas com aprendizagem.<br><br><b>A alternativa D está incorreta.</b> Uma avaliação pode ser objetiva sem no entanto ser tradicional. Esta não é a descrição da crítica feita por Luckesi ao modelo tradicional avaliativo.<br><br><b>A alternativa E está incorreta.</b> Uma avaliação qualitativa estaria de acordo com Luckesi. Mas ele faz uma crítica ao modelo tradicional. A questão pede esta crítica. Então, não se pode usar o termo "qualitativo" na alternativa.'
+            },
+            {
+                question: '17. Cipriano Luckesi (2011), em Avaliação da aprendizagem escolar, afirma que “a atual prática da avaliação escolar não viabiliza um processo de democratização do ensino. Ao contrário, possibilita um processo cada vez menos democrático no que se refere tanto à expansão do ensino quanto à sua qualidade”. Segundo ele, a primeira coisa a ser feita para que a avaliação sirva à democratização do ensino é',
+                options: [
+                    'a) discutir com os alunos o estado de aprendizagem que eles atingiram.',
+                    'b) transformar a medida em nota ou conceito.',
+                    'c) modificar a sua utilização de classificatória para participativa.',
+                    'd) modificar a sua utilização de classificatória para diagnóstica.',
+                    'e) oferecer ao educando oportunidade de melhorar a nota ou o conceito.'
+                ],
+                answer: 'D',
+                comment: '<b>A alternativa A está incorreta.</b> Isto é um processo posterior. A questão pede algo para ser feito no início.<br><br><b>A alternativa B está incorreta.</b> Transformar a medida em nota ou conceito iria ser contrário a forma de avaliação de Luckesi.<br><br><b>A alternativa C está incorreta.</b> Isso pode ser feito posteriormente. A questão pede algo para ser feito no início.<br><br><b>A alternativa D está correta.</b> Exatamente. A primeira medida a ser tomada é utilizar a avaliação diagnóstica por ser um tipo de avaliação que mostra as aprendizagens como estão dos alunos no início.<br><br><b>A alternativa E está incorreta.</b> Isso seria uma adaptação e não uma primeira medida de transformação do conceito de avaliação.'
+            },
+            {
+                question: '18. De acordo com o texto “O que é mesmo o ato de avaliar a aprendizagem?” de Cipriano Luckesi, é INCORRETO afirmar que',
+                options: [
+                    'a) o ato de avaliar, devido estar a serviço da obtenção do melhor resultado possível, implica a disposição de acolher.',
+                    'b) a avaliação da aprendizagem, por ser processual, é amorosa, inclusiva, dinâmica e construtiva.',
+                    'c) a disposição para julgar previamente não serve a uma prática de avaliação, porque exclui.',
+                    'd) o ato de avaliar implica dois processos articulados e indissociáveis: diagnosticar e decidir'
+                ],
+                answer: 'B',
+                comment: 'A questão pede a alternativa <b>incorreta</b>.<br><br><b>A alternativa A está correta.</b> A avaliação da aprendizagem é para acompanhamento das demandas dos alunos.<br><br><b>A alternativa B está incorreta.</b> O termo "amorosa" inviabilizou a alternativa, pois a avaliação deve ser um acompanhamento e não com base no amor.<br><br><b>A alternativa C está correta.</b> O julgamento prévio do aluno deve ser evitado, pois é necessário que a avaliação seja um processo de parceria com o estudante.<br><br><b>A alternativa D está correta.</b> A avaliação diagnóstica é uma primeira etapa do processo avaliativo com foco no ensino-aprendizagem. Ela é a base para tomar decisões sobre o planejamento pedagógico.'
+            },
+            {
+                question: '19. De acordo com Luckesi (2011), o projeto político-pedagógico para se efetivar e servir de parâmetro para a avaliação da aprendizagem, necessita de mediadores na perspectiva desse autor. Analise as afirmativas acerca do que se entende por mediadores.<br>I - Os recursos necessários para que se consiga levar a concepção teórica à prática cotidiana, tanto na escola como na vida dos educandos.<br>II - Os recursos ao mesmo tempo teóricos e práticos, que subsidiam a obtenção dos resultados desejados ou não.<br>III - Aquilo que serve de meio para chegar a algum resultado.<br>IV – O que dá suporte para que, na ação, se chegue onde se deseja chegar, de forma unilateral.<br><br>Assinale a alternativa que contempla afirmativas corretas.',
+                options: [
+                    'a) I e IV.',
+                    'b) I e III.',
+                    'c) II e IV.',
+                    'd) II e III.'
+                ],
+                answer: 'B',
+                comment: 'Analisaremos as afirmativas pela ordem.<br><br><b>Afirmativa I está correta.</b> Os recursos a serem utilizados na prática de um processo de avaliação deve ser levado em conta, pois somente dessa forma é possível pensar fora de idealismos. Construir um novo processo avaliativo na escola com base em realidades sólidas.<br><br><b>Afirmativa II está incorreta.</b> Os recursos não podem ser classificados em teóricos e práticos. São apenas recursos disponíveis para a transformação pedagógica.<br><br><b>Afirmativa III está correta.</b> Os recursos são o meio para chegar a um resultado. Esta é uma definição lógica de recursos.<br><br><b>Afirmativa IV está incorreta.</b> O termo "unilateral" inviabilizou a alternativa, pois os resultados não podem ser alcançados somente pelo professor. Se não vira nó ensino. O processo é ensino-aprendizagem. Deve ter a participação do aluno.<br><br><b>Alternativa correta letra B.</b>'
+            },
+            {
+                question: '20. Luckesi (2011) afirma que o ato de avaliar é um ato de investigar. Enquanto a ciência descreve e interpreta realidade, a avaliação descreve-a e qualifica-a. Na avaliação da aprendizagem, há duas modalidades que orientam as práticas avaliativas – a avaliação de certificação e a avaliação de acompanhamento da ação. A avaliação de acompanhamento da ação tem como característica',
+                options: [
+                    'a) a investigação da qualidade do seu objeto de estudo: a aprendizagem.',
+                    'b) o fim na qualificação da aprendizagem.',
+                    'c) a descrição da aprendizagem realizada.',
+                    'd) a aplicação de instrumentos avaliativos assistemáticos para garantir o rigor na aferição da aprendizagem.'
+                ],
+                answer: 'A',
+                comment: '<b>A alternativa A está correta.</b> A avaliação como acompanhamento só faz sentido se for para investigar os processos de aprendizagens dos alunos.<br><br><b>A alternativa B está incorreta.</b> Pelo contrário, é o começo da qualificação da aprendizagem, pois os alunos estarão sendo acompanhado pedagogicamente.<br><br><b>A alternativa C está incorreta.</b> Não é só descrição na avaliação como acompanhamento. É transformação da realidade em sala de aula.<br><br><b>A alternativa D está incorreta.</b> Todo acompanhamento envolve sistematização das informações coletadas. Se não fica impossível acompanhar o desenvolvimento do estudante.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+        const navigation = document.getElementById('navigation');
+
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    if (userAnswers[index] === undefined) {
+                        userAnswers[index] = {
+                            answer: optionBtn.getAttribute('data-letter'),
+                            button: optionBtn
+                        };
+                        checkAnswer(index);
+                        updateQuizState(); 
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            if (userAnswers[index]) {
+                 checkAnswer(index, true); 
+            }
+            updateQuizState();
+        }
+
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswerData = userAnswers[index];
+            
+            if (!userAnswerData) return;
+
+            const userAnswerLetter = userAnswerData.answer;
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswerLetter.toUpperCase() === correctLetter.toUpperCase()) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true; 
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                
+                if (optionLetter === correctLetter.toUpperCase()) {
+                    btn.classList.add('correct');
+                } else if (optionLetter === userAnswerLetter.toUpperCase()) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = userAnswers[currentQuestionIndex] !== undefined;
+            
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+
+            if (Object.keys(userAnswers).length === questions.length) {
+                showFinalScore();
+                nextBtn.disabled = true; // Desabilita o botão próxima ao final
+            }
+        }
+
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            navigation.style.display = 'none'; // Esconde a navegação
+            
+            const percentage = (score / questions.length) * 100;
+            let performanceMessage = '';
+
+            if (percentage >= 70) {
+                performanceMessage = "Excelente desempenho!";
+            } else if (percentage >= 50) {
+                performanceMessage = "Bom trabalho, continue praticando!";
+            } else {
+                performanceMessage = "Não desanime, continue estudando!";
+            }
+
+            finalScoreDisplay.innerHTML = `
+                <h2>Quiz Finalizado!</h2>
+                <p>Você acertou ${score} de ${questions.length} questões (${percentage.toFixed(0)}%).</p>
+                <p class="mt-2 font-semibold">${performanceMessage}</p>
+            `;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            navigation.style.display = 'flex';
+            finalScoreDisplay.classList.add('hidden');
+            restartBtn.classList.add('hidden');
+            renderQuestion(currentQuestionIndex);
+        });
+
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
+
