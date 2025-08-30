@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Português</title>
+    <!-- Inclui o Tailwind CSS para estilização moderna e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Adiciona a fonte Inter do Google Fonts para uma tipografia limpa -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+        <!-- Título do Quiz -->
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Quiz de Português - Parte 00</h1>
+
+        <!-- Seção da Questão -->
+        <div id="quiz-container">
+            <h2 class="text-xl font-bold text-gray-800 mb-4" id="question-number"></h2>
+            <div id="question-text" class="text-lg text-gray-700 mb-6 leading-relaxed"></div>
+            
+            <!-- Opções de Resposta -->
+            <div id="options-container" class="space-y-4"></div>
+            
+            <!-- Botão de Ver Resposta -->
+            <button id="submit-btn" class="mt-6 w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                Ver Resposta
+            </button>
+        </div>
+
+        <!-- Seção de Resultado e Comentário (Inicialmente oculta) -->
+        <div id="result-container" class="mt-8 hidden">
+            <h2 id="result-status" class="text-2xl font-bold text-center mb-4"></h2>
+            <div id="result-text" class="bg-gray-100 p-6 rounded-lg"></div>
+            <button id="next-btn" class="mt-4 w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors duration-200">
+                Próxima Questão
+            </button>
+        </div>
+
+        <!-- Mensagem de fim do Quiz -->
+        <div id="end-message" class="mt-8 hidden">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">Quiz Concluído!</h2>
+            <p id="final-score" class="text-xl text-center text-gray-700 mt-4"></p>
+        </div>
+    </div>
+
+    <script>
+        // Dados do quiz com 10 questões extraídas do arquivo
+        const quizData = [
+            {
+                questionText: `
+                    Na palavra “SAÚDE”, há:
+                `,
+                options: {
+                    A: 'um tritongo',
+                    B: 'um ditongo',
+                    C: 'dois ditongos',
+                    D: 'dois hiatos',
+                    E: 'um hiato'
+                },
+                correctAnswer: 'E',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentário</h3>
+                    <p class="text-gray-700 mb-2">As vogais “A” e “U” são pronunciadas separadamente: sA-Ú-de. Hiato é o encontro de duas vogais em sílabas diferentes. Por isso, a alternativa correta é a **E**.</p>
+                `
+            },
+            {
+                questionText: `
+                    Nas palavras “piada” e “ciúme”, temos exemplos, respectivamente:
+                `,
+                options: {
+                    A: 'um ditongo e um hiato',
+                    B: 'um hiato e um ditongo',
+                    C: 'dois ditongos',
+                    D: 'dois hiatos',
+                    E: 'um tritongo e um hiato'
+                },
+                correctAnswer: 'D',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentário</h3>
+                    <p class="text-gray-700 mb-2">Temos hiato nas duas palavras. A separação é "pI.A.da" e "cI.Ú.me"; há duas vogais em sílabas diferentes, porque são separadas na fala. Portanto, a alternativa correta é a **D**.</p>
+                `
+            },
+            {
+                questionText: `
+                    Analise as afirmativas abaixo sobre a separação silábica e a acentuação gráfica das palavras a seguir.
+                    <ul class="list-none text-gray-700 mt-4 space-y-1">
+                        <li>I. A palavra “você”: “vo-cê” é dissílaba e oxítona terminada em “e”.</li>
+                        <li>II. A palavra “família”: “fa-mí-lia” é trissílaba e paroxítona terminada em ditongo crescente.</li>
+                        <li>III. A palavra “físico”: “fí-si-co” é polissílaba e paroxítona terminada em ‘o’, portanto recebe acentuação gráfica.</li>
+                    </ul>
+                `,
+                options: {
+                    A: 'Apenas I está correta.',
+                    B: 'Apenas I e II estão corretas.',
+                    C: 'Apenas I e III estão corretas.',
+                    D: 'Apenas II e III estão corretas.',
+                    E: 'I, II e III estão corretas.'
+                },
+                correctAnswer: 'B',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentário</h3>
+                    <p class="text-gray-700 mb-2">A afirmativa I está correta. A palavra “você” é dissílaba (vo-cê) e oxítona, terminada em "e".</p>
+                    <p class="text-gray-700 mb-2">A afirmativa II está correta. A palavra “família” é trissílaba (fa-mí-lia) e paroxítona, terminada em ditongo crescente.</p>
+                    <p class="text-gray-700 mb-2">A afirmativa III está incorreta. A palavra “físico” é trissílaba (fí-si-co) e é proparoxítona, não paroxítona. Todas as proparoxítonas são acentuadas.</p>
+                    <p class="text-gray-700 mb-2">Portanto, apenas as afirmativas I e II estão corretas. A alternativa correta é a **B**.</p>
+                `
+            },
+            {
+                questionText: `
+                    Quanto a encontros vocálicos, especificamente sobre os ditongos, segundo nos ensina Bechara, são feitas as seguintes afirmações:
+                    <ul class="list-none text-gray-700 mt-4 space-y-1">
+                        <li>I. Ditongo é o encontro de uma vogal e de uma semivogal, ou vice-versa, na mesma sílaba. Sendo a vogal a base da sílaba ou o elemento silábico, é ela o som vocálico que, no ditongo, se ouve distintamente.</li>
+                        <li>II. Os ditongos podem ser crescentes e decrescentes (dependendo da posição da vogal e da semivogal), orais e nasais (dependendo se fechados ou abertos).</li>
+                    </ul>
+                `,
+                options: {
+                    A: 'Apenas I está correta.',
+                    B: 'Apenas II estão corretas.',
+                    C: 'Apenas I e II estão corretas.',
+                    D: 'I e II estão erradas.'
+                },
+                correctAnswer: 'C',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentário</h3>
+                    <p class="text-gray-700 mb-2">As duas afirmativas estão corretas. A afirmativa I define o que é ditongo, e a afirmativa II classifica os ditongos de acordo com a sua pronúncia (crescente ou decrescente) e com a sua oralidade (orais ou nasais).</p>
+                    <p class="text-gray-700 mb-2">A alternativa correta é a **C**.</p>
+                `
+            },
+            {
+                questionText: `
+                    “Onde” e “Aonde” são palavras que indicam lugar, entretanto são usadas em situações diferentes. Das alternativas abaixo, a incorreta é:
+                `,
+                options: {
+                    A: 'Onde você vai neste carnaval?',
+                    B: 'O local onde moro não tem carnaval.',
+                    C: 'Aonde devo dirigir-me para comprar protetor solar?',
+                    D: 'Onde você vai ficar hospedado?',
+                    E: 'Não sei onde começar a procurar vocês.'
+                },
+                correctAnswer: 'A',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentário</h3>
+                    <p class="text-gray-700 mb-2">O erro está na letra **A**. O verbo "ir" pede a preposição "a", portanto o correto seria "Aonde você vai neste carnaval?".</p>
+                    <p class="text-gray-700 mb-2">"Onde" é usado para retomar lugar físico, e "aonde" é usado quando o verbo pede a preposição "a", indicando movimento.</p>
+                    <p class="text-gray-700 mb-2">A alternativa correta é a **A**.</p>
+                `
+            },
+            {
+                questionText: `
+                    Assinale a frase em que houve troca indevida entre A e HÁ.
+                `,
+                options: {
+                    A: 'Os atletas estão há poucos dias das Olimpíadas.',
+                    B: 'Não há muito o que fazer nessas circunstâncias.',
+                    C: 'Dentro da caixa há uma série de brinquedos.',
+                    D: 'O que há de novo na guerra Rússia X Ucrânia?',
+                    E: 'Sem problemas, pois há dois meses até o pagamento.'
+                },
+                correctAnswer: 'A',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentário</h3>
+                    <p class="text-gray-700 mb-2">O erro está na letra **A**. A frase se refere a um tempo futuro ("faltam poucos dias"), portanto o correto seria usar "a". "Há" é utilizado para indicar tempo transcorrido ou no sentido de "existir".</p>
+                    <p class="text-gray-700 mb-2">A alternativa correta é a **A**.</p>
+                `
+            },
+            {
+                questionText: `
+                    No trecho do texto “As espécies nobres apresentam pouca distinção entre o alburno e o cerne.”, a palavra sublinhada é classificada:
+                `,
+                options: {
+                    A: 'Substantivo.',
+                    B: 'Adjetivo.',
+                    C: 'Pronome.',
+                    D: 'Verbo.'
+                },
+                correctAnswer: 'B',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentário</h3>
+                    <p class="text-gray-700 mb-2">A palavra "nobres" é um **adjetivo**, pois está qualificando o substantivo "espécies".</p>
+                    <p class="text-gray-700 mb-2">A alternativa correta é a **B**.</p>
+                `
+            },
+            {
+                questionText: `
+                    Considere os trechos abaixo:
+                    <ul class="list-none text-gray-700 mt-4 space-y-1">
+                        <li>I - Um olhar corajoso, só isso;</li>
+                        <li>II - Aos dois, faltava a coragem de perguntar.</li>
+                    </ul>
+                    <br>
+                    Assinale a alternativa que indica, respectivamente, a classe gramatical dos termos CORAJOSO e CORAGEM.
+                `,
+                options: {
+                    A: 'Verbo, adjetivo.',
+                    B: 'Advérbio, adjetivo.',
+                    C: 'Pronome, advérbio.',
+                    D: 'Adjetivo, substantivo.',
+                    E: 'Advérbio, substantivo.'
+                },
+                correctAnswer: 'D',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentário</h3>
+                    <p class="text-gray-700 mb-2">A palavra "corajoso" é um **adjetivo**, pois qualifica o substantivo "olhar". A palavra "coragem" é um **substantivo**, pois nomeia a qualidade e está acompanhada de artigo ("a").</p>
+                    <p class="text-gray-700 mb-2">A alternativa correta é a **D**.</p>
+                `
+            },
+            {
+                questionText: `
+                    Sobre a classe gramatical das palavras grifadas, tem-se a correspondência correta em:
+                `,
+                options: {
+                    A: '“Seremos estranhos em nossa residência.” (16º§) – pronome demonstrativo.',
+                    B: '“[...] agora é um temporal para os pés idosos de nossos protetores.” (13º§) – conjunção subordinativa final.',
+                    C: '“Ou, quem sabe, a velhice do pai e da mãe seja curiosamente nossa última gravidez.” (8º§) – advérbio de modo.',
+                    D: '“É quando aquele pai que segurava com força nossa mão já não tem como se levantar sozinho.” (3º§) – preposição.'
+                },
+                correctAnswer: 'C',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentário</h3>
+                    <p class="text-gray-700 mb-2">A única correspondência correta é a da letra **C**. "Curiosamente" é um advérbio de modo.</p>
+                    <p class="text-gray-700 mb-2">A) "nossa" é pronome possessivo, não demonstrativo.</p>
+                    <p class="text-gray-700 mb-2">B) "para" é preposição, não conjunção subordinativa final.</p>
+                    <p class="text-gray-700 mb-2">D) "quando" é advérbio, não preposição.</p>
+                    <p class="text-gray-700 mb-2">A alternativa correta é a **C**.</p>
+                `
+            },
+            {
+                questionText: `
+                   Analise o excerto a seguir:
+                    <br><br>
+                    “Serão utilizados três instrumentos científicos: imagens multiespectrais para fotografá-lo, espectrômetros para determinar sua composição e magnetômetros para medir seu campo magnético.”.
+                    <br><br>
+                    As orações iniciadas pelos conectivos destacados expressam valor
+                `,
+                options: {
+                    A: 'temporal.',
+                    B: 'modal.',
+                    C: 'final.',
+                    D: 'condicional.',
+                    E: 'comparativo.'
+                },
+                correctAnswer: 'C',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentário</h3>
+                    <p class="text-gray-700 mb-2">O uso da preposição "para" nas orações "para fotografá-lo", "para determinar" e "para medir" indica **finalidade** ou propósito. A oração tem valor final.</p>
+                    <p class="text-gray-700 mb-2">A alternativa correta é a **C**.</p>
+                `
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let selectedOption = null;
+        let correctAnswers = 0;
+        let incorrectAnswers = 0;
+
+        // Referências aos elementos DOM
+        const questionNumberEl = document.getElementById('question-number');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainerEl = document.getElementById('options-container');
+        const submitBtnEl = document.getElementById('submit-btn');
+        const resultContainerEl = document.getElementById('result-container');
+        const resultStatusEl = document.getElementById('result-status');
+        const resultTextEl = document.getElementById('result-text');
+        const nextBtnEl = document.getElementById('next-btn');
+        const endMessageEl = document.getElementById('end-message');
+        const finalScoreEl = document.getElementById('final-score');
+
+        // Função para carregar a questão atual
+        function loadQuestion() {
+            if (currentQuestionIndex >= quizData.length) {
+                showFinalScore();
+                return;
+            }
+
+            const currentQuestion = quizData[currentQuestionIndex];
+            
+            // Atualiza a interface do usuário
+            questionNumberEl.textContent = `Questão ${currentQuestionIndex + 1} de ${quizData.length}`;
+            questionTextEl.innerHTML = currentQuestion.questionText;
+            optionsContainerEl.innerHTML = '';
+            resultContainerEl.classList.add('hidden');
+            submitBtnEl.classList.remove('hidden');
+            
+            selectedOption = null;
+
+            // Cria os botões de opção
+            for (const option in currentQuestion.options) {
+                const button = document.createElement('button');
+                button.classList.add('w-full', 'p-4', 'text-left', 'bg-gray-100', 'hover:bg-gray-200', 'rounded-lg', 'font-medium', 'transition-colors', 'duration-200');
+                button.textContent = `${option}) ${currentQuestion.options[option]}`;
+                button.onclick = () => {
+                    // Remove a seleção de todas as opções
+                    document.querySelectorAll('#options-container button').forEach(btn => {
+                        btn.classList.remove('border-2', 'border-blue-600');
+                    });
+                    // Adiciona a seleção à opção clicada
+                    button.classList.add('border-2', 'border-blue-600');
+                    selectedOption = option;
+                };
+                optionsContainerEl.appendChild(button);
+            }
+        }
+
+        // Função para verificar a resposta
+        submitBtnEl.onclick = () => {
+            if (!selectedOption) {
+                alert('Por favor, selecione uma opção.');
+                return;
+            }
+
+            const currentQuestion = quizData[currentQuestionIndex];
+            const isCorrect = selectedOption === currentQuestion.correctAnswer;
+
+            // Oculta o quiz e mostra o resultado
+            submitBtnEl.classList.add('hidden');
+            resultContainerEl.classList.remove('hidden');
+            
+            if (isCorrect) {
+                correctAnswers++;
+                resultStatusEl.textContent = 'Parabéns, você acertou!';
+                resultStatusEl.classList.add('text-green-600');
+                resultStatusEl.classList.remove('text-red-600');
+            } else {
+                incorrectAnswers++;
+                resultStatusEl.textContent = 'Que pena, você errou.';
+                resultStatusEl.classList.add('text-red-600');
+                resultStatusEl.classList.remove('text-green-600');
+            }
+            
+            // Exibe o comentário
+            resultTextEl.innerHTML = currentQuestion.commentary;
+        };
+
+        // Função para ir para a próxima questão
+        nextBtnEl.onclick = () => {
+            currentQuestionIndex++;
+            loadQuestion();
+        };
+
+        // Função para mostrar a pontuação final
+        function showFinalScore() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('result-container').classList.add('hidden');
+            endMessageEl.classList.remove('hidden');
+            finalScoreEl.textContent = `Você acertou ${correctAnswers} de ${quizData.length} questões.`;
+        }
+
+        // Inicializa o quiz
+        loadQuestion();
+    </script>
+</body>
+</html>
