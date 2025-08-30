@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Conhecimentos Específicos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight 北京
+            700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Conhecimentos Específicos - Parte 00</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            <!-- Question cards will be injected here by JavaScript -->
+        </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 21 de 25</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: '21. Analise as informações a seguir:<br><br>I. Para a Teoria das Inteligências Múltiplas de Gardner, no processo de ensino, deve-se procurar identificar as inteligências mais marcantes em cada aprendiz e tentar explorá-las para atingir o objetivo final, que é o aprendizado de determinado conteúdo.<br><br>II. Para a Teoria Sociocultural de Vygotsky, o desenvolvimento cognitivo é limitado a um determinado potencial para cada intervalo de idade (ZDP). Assim, o indivíduo deve estar inserido em um grupo social e aprende o que seu grupo produz. O conhecimento surge primeiro no grupo, para só depois ser interiorizado e a aprendizagem ocorre no relacionamento do aluno com o professor e com outros alunos.<br><br>Marque a alternativa CORRETA:',
+                options: [
+                    'A) As duas afirmativas são verdadeiras.',
+                    'B) A afirmativa I é verdadeira, e a II é falsa.',
+                    'C) A afirmativa II é verdadeira, e a I é falsa.',
+                    'D) As duas afirmativas são falsas.'
+                ],
+                answer: 'A',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário.<br><br><b>Afirmativa I</b> é verdadeira. A Teoria de Gardner está focada no desenvolvimento de múltiplas inteligências.<br><br><b>Afirmativa II</b> é verdadeira. A afirmativa descreve o fenômeno da internalização de Vygotsky, pois as funções são amadurecidas do grupo para o indivíduo. Por isso, a ZDP também ocorre com o relacionamento do aluno com o professor e com os colegas.<br><br><b>Alternativa correta letra A.</b>'
+            },
+            {
+                question: '22. Todos aprendemos sem nos preocuparmos verdadeiramente com a natureza desse processo e todos ensinamos sem buscarmos um suporte teórico explicativo do processo de ensino-aprendizagem. Como professores temos alguns referenciais explicativos e, também, de forma implícita ou explícita, orientamos a nossa prática por tais referenciais. De qualquer modo, as teorias de aprendizagem, tendo surgido, possivelmente, porque conforme salienta Bigge (1977), “o homem não só quis aprender como também, frequentemente, sua curiosidade o impeliu a tentar aprender como se aprende”, são diversas e acompanharam de perto a evolução observada na Psicologia e na Educação em Ciências. (Disponível em: https://www.scielo.br/Adaptado.)<br><br>Considerando as teorias da aprendizagem citadas a seguir, relacione-as adequadamente com as características dadas.<br><br>1. Teoria Construtivista de Bruner.<br>2. Teoria Sociocultural de Vygotsky.<br>3. Teoria da Inclusão de D. Ausubel.<br>4. Teoria das inteligências múltiplas de Gardner.<br><br>( ) O fator mais importante de aprendizagem é o que o aluno já sabe. Para ocorrer a aprendizagem, conceitos relevantes devem estar claros e disponíveis na estrutura cognitiva do indivíduo. A aprendizagem ocorre quando uma nova informação se ancora em conceitos ou proposições relevantes preexistentes.<br><br>( ) No processo de ensino, deve-se procurar identificar o potencial biopsicológico mais marcante em cada aprendiz e tentar explorá-lo para atingir o objetivo final, que é o aprendizado de determinado conteúdo. Procura promover uma mudança no ensino na aprendizagem, considerando as necessidades formativas de cada aluno inserido no seu contexto.<br><br>( ) O aprendizado é um processo ativo, baseado em seus conhecimentos prévios e os que estão sendo estudados. O aprendiz filtra e transforma a nova informação, infere hipóteses e toma decisões. Aprendiz é participante ativo no processo de aquisição de conhecimento. Instrução relacionada a contextos e experiências pessoais.<br><br>( ) Desenvolvimento cognitivo é limitado a um determinado potencial para cada intervalo de idade – zona potencial de desenvolvimento. O indivíduo deve estar inserido em um grupo social e aprende o que seu grupo produz; o conhecimento surge primeiro no grupo, para só depois ser interiorizado. A aprendizagem ocorre no relacionamento do aluno com o professor e com outros alunos.<br><br>A sequência está correta em',
+                options: [
+                    'A) 3, 4, 1, 2.',
+                    'B) 4, 3, 2, 1.',
+                    'C) 2, 1, 3, 4.',
+                    'D) 1, 3, 2, 4.'
+                ],
+                answer: 'A',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário.<br><br>A primeira afirmativa é 3. Teoria da Inclusão de D. Ausubel. A descrição da afirmativa enfatiza os conhecimentos prévios, bem como a relação de ancoragem dos saberes novos dentro dos saberes antigos.<br><br>A segunda afirmativa é 4. Teoria das Inteligências Múltiplas de Gardner. O potencial de cada aluno é justamente a construção de diferentes inteligências. Cada estudante possui uma certa predisposição para determinadas inteligências: físico-cinestésica, lógico-matemática, linguística, musical...<br><br>A terceira afirmativa é 1. Teoria Construtivista de Bruner. Bruner também aborda os conhecimentos prévios. O foco é na construção de “andaimes” de aprendizagem que vão sendo somados no decorrer do processo de ensino-aprendizagem.<br><br>A quarta afirmativa é 2. Teoria Sociocultural de Vygotsky. A Zona de Desenvolvimento Potencial é um conceito da Psicologia Histórico-Cultural.<br><br><b>Alternativa correta letra A.</b>'
+            },
+            {
+                question: '23. Henri Wallon, psicólogo e pedagogo francês, é amplamente reconhecido por suas contribuições à psicologia do desenvolvimento e à educação. Sua teoria destaca a importância do desenvolvimento integral da criança, considerando aspectos emocionais, cognitivos e motores. Wallon preconiza que o aprendizado é uma atividade que envolve todo o ser da criança e que a educação eficaz deve considerar a complexidade do desenvolvimento infantil. Sobre os importantes conceitos relacionados a Wallon e sua teoria, analise as afirmativas a seguir.<br><br>I. A emoção é um estado afetivo isolado; é intrinsecamente ligada ao processo de construção do pensamento e da inteligência. Ele via as emoções como uma forma de atividade mental que molda a maneira como as crianças interagem com o mundo e constroem conhecimento. Em outras palavras, as emoções influenciam a maneira como as crianças percebem, pensam, aprendem e desempenham um papel central no desenvolvimento cognitivo da criança; por este motivo, ele acreditava que a emoção e a razão eram dissociáveis.<br><br>II. O desenvolvimento cognitivo não é separado do desenvolvimento emocional. Ele descreveu a evolução das emoções e do pensamento em estágios, e cada estágio está associado a um tipo específico de emoção. Por exemplo, nos estágios iniciais, as emoções estão fortemente ligadas às necessidades básicas, como a alimentação e o conforto. Conforme a criança cresce, as emoções se tornam mais complexas e relacionadas a aspectos sociais e culturais.<br><br>III. Um dos conceitos-chave de sua teoria é o de “dialetização”, que se refere ao processo pelo qual as emoções são integradas ao pensamento e à ação. Em outras palavras, as emoções desempenham um papel fundamental na formação do pensamento, ajudando a criança a entender o mundo ao seu redor e a agir de maneira apropriada. Isso significa que as emoções não são obstáculos para o desenvolvimento cognitivo, mas sim um componente essencial desse processo.<br><br>IV. Via o desenvolvimento como um processo contínuo e dinâmico, com prevalência da emoção sobre a emoção, a cognição e a cultura em cada estágio. Ele enfatizava a importância da educação que respeitasse o estágio de desenvolvimento da criança, adaptando as estratégias pedagógicas de acordo com as necessidades e potencialidades de cada fase.<br><br>Está correto o que se afirma em',
+                options: [
+                    'A) I, II, III e IV.',
+                    'B) I e IV, apenas.',
+                    'C) II e III, apenas.',
+                    'D) I, II e III, apenas.'
+                ],
+                answer: 'C',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário.<br><br>Afirmativa I está incorreta. Pelo contrário, Wallon afirma que a afetividade não é um fenômeno isolado. O afeto está ligado ao pensar (cognitivo) e ao ato motor.<br><br>Afirmativa II está correta. Perfeito. O cognitivo não está separado da afetividade. Estas duas esferas do desenvolvimento humano são indissociáveis.<br><br>Afirmativa III está correta. O processo de “dialetização” demonstra a evolução da criança nos aspectos cognitivos e afetivos. Dessa forma, o progresso ocorre por complementação dos aspectos afetivos e cognitivos de forma conjunta.<br><br>Afirmativa IV está incorreta. Não há prevalência da emoção sobre o intelecto em todos os estágios. A prioridade da emoção no desenvolvimento depende de cada etapa. Por exemplo, é o caso do estágio impulsivo-emocional.<br><br><b>Alternativa correta letra C.</b>'
+            },
+            {
+                question: '24. Analise as informações a seguir:<br><br>I. Para a Teoria do Aprendizado Experimental de Carl Rogers, deve-se buscar sempre o aprendizado experimental, pois as pessoas aprendem melhor aquilo que é necessário. O interesse e a motivação são essenciais para o aprendizado bem-sucedido.<br><br>II. A Teoria da Inclusão de Ausubel enfatiza a percepção ao invés da resposta. A resposta é considerada como o sinal de que a aprendizagem ocorreu e não como parte integral do processo.<br><br>Não enfatiza a sequência estímulo-resposta, mas o contexto ou campo no qual o estímulo ocorre e o insight tem origem, quando a relação entre estímulo e o campo é percebida pelo aprendiz.<br><br>Marque a alternativa CORRETA:',
+                options: [
+                    'A) As duas afirmativas são verdadeiras.',
+                    'B) A afirmativa I é verdadeira, e a II é falsa.',
+                    'C) A afirmativa II é verdadeira, e a I é falsa.',
+                    'D) As duas afirmativas são falsas.'
+                ],
+                answer: 'B',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário.<br><br>Afirmativa I está correta. O autor coloca ênfase na autenticidade e no encontro com a humanidade de cada pessoa. Para isso, o estudante deve estar motivado através do interesse no aprendizado genuíno.<br><br>Afirmativa II está incorreta. Ausubel não é autor comportamental. Não é possível falar em percepção e resposta. Este teórico da psicologia deve estar relacionado com a aprendizagem significativa.<br><br><b>Alternativa correta letra B.</b>'
+            },
+            {
+                question: '25. Analise a situação concreta abaixo sob a perspectiva de Erik Erikson e Jean Piaget. Um professor de língua portuguesa percebe que seu aluno do 7º ano do ensino fundamental está dentro da idade esperada para a série. Ele é um aluno muito participativo, pois gosta de conversar sobre os mais variados temas abstratos: família, justiça, mercado de trabalho e valores. Ao mesmo tempo, o docente repara que o estudante possui dificuldades para estar em um grupo de amigos.<br>O professor pergunta sobre qual a razão deste problema ao aluno. O educando responde que ele ainda não encontrou os colegas que tem “mais a ver” com seu jeito de ver o mundo.<br><br>De acordo com os autores, o aluno está nos estágios de Erikson e Piaget, respectivamente:',
+                options: [
+                    'A) Conflito Identidade x Confusão de Papéis; Estágio Operatório Concreto.',
+                    'B) Conflito Integridade x Desespero; Estágio Formal.',
+                    'C) Conflito Identidade x Confusão de Papéis; Estágio Formal.',
+                    'D) Iniciativa x Culpa; Estágio Operatório Concreto.'
+                ],
+                answer: 'C',
+                comment: 'A alternativa A está incorreta. Segundo Erikson, o conflito Identidade x Confusão de Papéis é próprio da adolescência (12 anos de idade em diante). Segundo Piaget, o Estágio Operatório Concreto é até os 10 anos de idade. O enunciado descreve um aluno que gosta de assuntos abstratos, por isso a indicação de que ele esteja no Estágio Formal.<br><br>A alternativa B está incorreta. Segundo Erikson, o conflito Iniciativa x Culpa é próprio de uma criança.<br><br>A alternativa C está correta. Segundo Erikson, o conflito Identidade x Confusão de Papéis é próprio da adolescência (12 anos de idade em diante). Segundo Piaget, o Estágio Formal começa a partir dos 11 anos de idade. O enunciado mostra que o estudante tem interesse em assuntos abstratos.<br><br>A alternativa D está incorreta. Segundo Erikson, o conflito Iniciativa x Culpa é próprio da criança de 4 e 5 anos de idade. Segundo Piaget, o Estágio Operatório Concreto começa a partir dos 6 anos de idade e vai até os 10 anos. Aqui estamos já falando de um adolescente.<br><br><b>Alternativa correta letra C.</b>'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = optionBtn.getAttribute('data-letter');
+                        checkAnswer(index);
+                        updateQuizState();
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            if (userAnswers[index]) {
+                checkAnswer(index, true);
+            }
+            updateQuizState();
+        }
+
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswer = userAnswers[index];
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswer && userAnswer.toUpperCase() === correctLetter) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true;
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                if (optionLetter === correctLetter) {
+                    btn.classList.add('correct');
+                }
+                if (optionLetter === userAnswer && optionLetter !== correctLetter) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = !!userAnswers[currentQuestionIndex];
+            
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
