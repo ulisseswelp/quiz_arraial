@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Legislação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Legislação - Parte 01</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            <!-- Question cards will be injected here by JavaScript -->
+        </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 1 de 10</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        // Array de objetos com as perguntas, opções, respostas corretas e comentários
+        const questions = [
+            {
+                question: '1. Segundo a definição em Lei, as barreiras: qualquer entrave, obstáculo, atitude ou comportamento que limite ou impeça a participação social da pessoa, bem como o gozo, a fruição e o exercício de seus direitos à acessibilidade, à liberdade de movimento e de expressão, à comunicação, ao acesso à informação, à compreensão, à circulação com segurança, entre outros, classificadas em:',
+                options: [
+                    'A) Urbanísticas, arquitetônicas, transportes, nas comunicações e na informação, atitudinais, tecnológicas.',
+                    'B) Urbanísticas, arquitetônicas, transportes, nas comunicações e na informação, atitudinais, televisivas.',
+                    'C) Ruralista, arquitetônicas, transportes, nas comunicações e na informação, atitudinais, televisivas.',
+                    'D) Urbanísticas, arquitetônicas, teletransportes, nas comunicações e na informação, aliviadas, tecnológicas.'
+                ],
+                answer: 'A',
+                comment: 'De acordo com o art. 3º, IV, do EPD, as barreiras são urbanísticas, arquitetônicas, nos transportes, nas comunicações e na informação, atitudinais e tecnológicas:<br><br>Art. 3º Para fins de aplicação desta Lei, consideram-se:<br>IV - barreiras: qualquer entrave, obstáculo, atitude ou comportamento que limite ou impeça a participação social da pessoa, bem como o gozo, a fruição e o exercício de seus direitos à acessibilidade, à liberdade de movimento e de expressão, à comunicação, ao acesso à informação, à compreensão, à circulação com segurança, entre outros, classificadas em:<br>a) barreiras urbanísticas: as existentes nas vias e nos espaços públicos e privados abertos ao público ou de uso coletivo;<br>b) barreiras arquitetônicas: as existentes nos edifícios públicos e privados;<br>c) barreiras nos transportes: as existentes nos sistemas e meios de transportes;<br>d) barreiras nas comunicações e na informação: qualquer entrave, obstáculo, atitude ou comportamento que dificulte ou impossibilite a expressão ou o recebimento de mensagens e de informações por intermédio de sistemas de comunicação e de tecnologia da informação;<br>e) barreiras atitudinais: atitudes ou comportamentos que impeçam ou prejudiquem a participação social da pessoa com deficiência em igualdade de condições e oportunidades com as demais pessoas;<br>f) barreiras tecnológicas: as que dificultam ou impedem o acesso da pessoa com deficiência às tecnologias;<br><br>Assim, a alternativa A é correta e é o gabarito da questão.'
+            },
+            {
+                question: '2. De acordo com a Lei n º  13.146, de 06 de julho de 2015, de acordo com seu artigo 3 º , é correto afirmar que:',
+                options: [
+                    'A) Acessibilidade: impossibilidade e condição de alcance para utilização, com segurança e autonomia, de espaços, mobiliários, equipamentos urbanos, edificações, transportes, informação e comunicação, inclusive seus sistemas e tecnologias, bem como de outros serviços e instalações abertos ao público, de uso público ou privados de uso coletivo, tanto na zona urbana como na rural, por pessoa sem deficiência ou mobilidade reduzida.',
+                    'B) Tecnologia assistiva ou ajuda técnica: produtos, equipamentos, dispositivos, recursos, metodologias, estratégias, práticas e serviços que objetivem promover a funcionalidade, relacionada à atividade e à participação da pessoa com deficiência ou com mobilidade reduzida, visando à sua autonomia, independência, qualidade de vida e inclusão social.',
+                    'C) Desenho universal: concepção de produtos, ambientes, programas e serviços a serem usados por algumas as pessoas, sem necessidade de adaptação ou de projeto específico, incluindo os recursos de tecnologia assistiva;',
+                    'D) Barreiras: qualquer entrave, obstáculo, atitude ou comportamento que não limite ou impeça a participação social da pessoa, bem como o gozo, a fruição e o exercício de seus direitos à acessibilidade, à liberdade de movimento e de expressão, à comunicação, ao acesso à informação, à compreensão, à circulação com segurança.'
+                ],
+                answer: 'B',
+                comment: 'A alternativa A é incorreta. A acessibilidade é a possibilidade e condição ao alcance da pessoa com deficiência.<br>A alternativa B é correta e é o gabarito da questão, apontando o conceito correto de tecnologia assistiva ou ajuda técnica.<br>A alternativa C é incorreta. O desenho universal é voltado para todas as pessoas.<br>A alternativa D é incorreta. Barreiras limitam ou impedem a participação social da pessoa com deficiência.'
+            },
+            {
+                question: '3. De acordo com a Lei 13.146 de 06 de julho de 2015  –  Lei Brasileira de Inclusão da Pessoa com Deficiência  –  sobre a avaliação de deficiência, quando necessária, será biopsicossocial, realizada por equipe multiprofissional e interdisciplinar e considerará, EXCETO:',
+                options: [
+                    'A) A restrição de participação.',
+                    'B) Os impedimentos nas funções e nas estruturas do corpo.',
+                    'C) Os fatores socioambientais, psicológicos e pessoais.',
+                    'D) A limitação psicológica no desempenho de atividades.'
+                ],
+                answer: 'D',
+                comment: 'De acordo com a redação estrita, consideram-se as limitações no desempenho de atividades, não as limitações psicológicas.<br><br>Assim, a alternativa D é correta e é o gabarito da questão.'
+            },
+            {
+                question: '4. Associe as colunas relacionando corretamente os termos incorporados ao Estatuto da Pessoa com Deficiência (Lei Federal n º  13.146, de 2015) aos seus respectivos significados.<br>TERMOS INCORPORADOS<br>1 - Acessibilidade<br>2 - Tecnologia assistiva<br>3 - Desenho universal<br>4 - Barreiras<br>SIGNIFICADOS<br><br>( ) Concepção de produtos, ambientes, programas e serviços a serem usados por todas as pessoas, sem necessidade de adaptação ou de projeto específico, incluindo os recursos de tecnologia assistiva.<br><br>( ) Qualquer entrave, obstáculo, atitude ou comportamento que limite ou impeça a participação social da pessoa, bem como o gozo, a fruição e o exercício de seus direitos à acessibilidade, à liberdade de movimento<br>e de expressão, à comunicação, ao acesso à informação, à compreensão, à circulação com segurança, entre outros.<br><br>( ) Possibilidade e condição de alcance para utilização, com segurança e autonomia, de espaços, mobiliários, equipamentos urbanos, edificações, transportes, informação e comunicação, inclusive seus sistemas e<br>tecnologias, bem como de outros serviços e instalações abertos ao público, de uso público ou privados de uso coletivo, tanto na zona urbana como na rural, por pessoa com deficiência ou com mobilidade reduzida.<br><br>( ) Produtos, equipamentos, dispositivos, recursos, metodologias, estratégias, práticas e serviços que objetivem promover a funcionalidade, relacionada à atividade e à participação da pessoa com deficiência ou com mobilidade reduzida, visando à sua autonomia, independência, qualidade de vida e inclusão social.<br><br>A sequência correta dessa associação é',
+                options: [
+                    'A) 1, 3, 2, 4.',
+                    'B) 3, 4, 2, 1.',
+                    'C) 3, 1, 4, 1.',
+                    'D) 3, 4, 1, 2.'
+                ],
+                answer: 'D',
+                comment: 'A assertiva I corresponde ao conceito de desenho universal, portanto, deve ser registrado o item 3.<br>A assertiva II corresponde ao conceito de barreira, portanto, deve ser registrado o item 4.<br>A assertiva III corresponde ao conceito de acessibilidade, portanto, deve ser registrado o item 1.<br>A assertiva IV corresponde ao conceito de tecnologia assistiva, portanto, deve ser registrado o item 2.<br><br>Como a sequência correta é 3, 4, 1 e 2, a alternativa D é correta e é o gabarito da questão.'
+            },
+            {
+                question: '5. Em conformidade com a Lei n º 13.146/2015 - Estatuto da Pessoa com Deficiência, analisar os itens abaixo:<br><br>I. A pessoa com deficiência tem direito a receber atendimento prioritário, sobretudo com a finalidade de disponibilização de recursos que garantam atendimento em igualdade de condições com as demais pessoas.<br>II. Os direitos de atendimento prioritário não são extensivos ao acompanhante da pessoa com deficiência ou ao seu atendente pessoal.<br>III. A recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas é considerada um tipo de discriminação em razão da deficiência.<br><br>Está(ão) CORRETO(S):',
+                options: [
+                    'A) Somente o item I.',
+                    'B) Somente o item II.',
+                    'C) Somente os itens I e II.',
+                    'D) Somente os itens I e III.',
+                    'E) Todos os itens.'
+                ],
+                answer: 'D',
+                comment: 'A assertiva I está correta. A prioridade da pessoa com deficiência visa, dentre outras finalidades, garantir o acesso a recursos que garantam o atendimento em igualdade de condições com as demais pessoas:<br><br>Art. 9º A pessoa com deficiência tem direito a receber atendimento prioritário, sobretudo com a finalidade de:<br>III - disponibilização de recursos, tanto humanos quanto tecnológicos, que garantam atendimento em igualdade de condições com as demais pessoas;<br><br>A assertiva II está incorreta. A prioridade se estende ao acompanhante ou atendente pessoal, salvo no que se refere ao recebimento da restituição do imposto de renda e à tramitação de processos:<br>§ 1º Os direitos previstos neste artigo são extensivos ao acompanhante da pessoa com deficiência ou ao seu atendente pessoal, exceto quanto ao disposto nos incisos VI e VII deste artigo.<br><br>A assertiva III está correta. A recusa de fornecer adaptação razoável ou fornecer tecnologia assistiva configura discriminação:<br><br>Art. 4º [...]<br>§ 1º Considera-se discriminação em razão da deficiência toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas.<br><br>Como as assertivas I e III estão corretas, a alternativa D é correta e é o gabarito da questão.'
+            },
+            {
+                question: '6. Com base no Estatuto da Pessoa com Deficiência, Lei 13.146/2015, com relação ao Direito ao Transporte e à Mobilidade, é correto afirmar que:',
+                options: [
+                    'A) em todas as áreas de estacionamento aberto ao público, de uso público ou privado de uso coletivo e em vias públicas, devem ser reservadas vagas próximas aos acessos de circulação de pedestres, devidamente sinalizadas, para veículos que transportem pessoa com deficiência com comprometimento de mobilidade, independente de identificação.',
+                    'B) em todas as áreas de estacionamento aberto ao público, de uso público ou privado de uso coletivo e em vias públicas, devem ser reservadas vagas próximas aos acessos de circulação de pedestres, devidamente sinalizadas, para veículos que transportem pessoa com deficiência com comprometimento de mobilidade, devendo estas equivalerem a 1 % (um por cento) do total de vagas.',
+                    'C) em todas as áreas de estacionamento aberto ao público, de uso público ou privado de uso coletivo e em vias públicas, devem ser reservadas vagas próximas aos acessos de circulação de pedestres, devidamente sinalizadas, para veículos que transportem pessoa com deficiência com comprometimento de mobilidade, garantidas no mínimo 2 (duas) vagas devidamente sinalizadas.',
+                    'D) em todas as áreas de estacionamento aberto ao público, de uso público ou privado de uso coletivo e em vias públicas, devem ser reservadas vagas próximas aos acessos de circulação de pedestres, devidamente sinalizadas, para veículos que transportem pessoa com deficiência com comprometimento de mobilidade, desde que devidamente identificados.',
+                    'E) em todas as áreas de estacionamento aberto ao público, de uso público ou privado de uso coletivo e em vias públicas, devem ser reservadas vagas próximas aos acessos de circulação de pedestres, devidamente sinalizadas, para veículos que transportem pessoa com deficiência com comprometimento de mobilidade, devendo estas equivalerem a 5% (cinco por cento) do total de vagas.'
+                ],
+                answer: 'D',
+                comment: 'De acordo com o EPD, devem ser reservadas, nos estacionamentos, vagas próximas ao acesso de circulação de pedestres em favor da pessoa com deficiência. No mínimo 2% do total de vagas deve ser reservado e ao menos uma deve ser reservada. Para fazer uso desse direito, a pessoa com deficiência deve se identificar:<br><br>Art. 47. Em todas as áreas de estacionamento aberto ao público, de uso público ou privado de uso coletivo e em vias públicas, devem ser reservadas vagas próximas aos acessos de circulação de pedestres, devidamente sinalizadas, para veículos que transportem pessoa com deficiência com comprometimento de mobilidade, desde que devidamente identificados.<br>§ 1º As vagas a que se refere o caput deste artigo devem equivaler a 2% (dois por cento) do total, garantida, no mínimo, 1 (uma) vaga devidamente sinalizada e com as especificações de desenho e traçado de acordo com as normas técnicas vigentes de acessibilidade.<br><br>Assim, a alternativa D é correta e é o gabarito da questão.'
+            },
+            {
+                question: '7. A lei nº 13.146/2015 instituiu o Estatuto da Pessoa com Deficiência, que prevê uma série de direitos à igualdade de oportunidades, acessibilidade e inclusão social para pessoas com deficiência em todo Brasil. Sobre o Estatuto da Pessoa com Deficiência, Lei nº 13.146/2015 e atualizações, marque a alternativa CORRETA abaixo:',
+                options: [
+                    'A) A acessibilidade é a possibilidade e condição de alcance para utilização com segurança e autonomia exclusivamente dos espaços, equipamentos urbanos, edificações e transportes, tanto na zona urbana como na rural, por pessoa com deficiência ou com mobilidade reduzida.',
+                    'B) A avaliação da deficiência, quando necessária, será realizada por uma equipe de profissionais médicos, que considerará exclusivamente na sua avaliação os impedimentos nas funções, nas estruturas do corpo e na limitação no desempenho de atividades.',
+                    'C) A deficiência não afeta a plena capacidade civil da pessoa para casar-se e constituir união estável, com a única exceção de não poder exercer o direito à guarda, à tutela, à curatela e à adoção, como adotante ou adotando.',
+                    'D) A proteção integral na modalidade de residência inclusiva será prestada no âmbito do SUAS à pessoa com deficiência em situação de dependência que não disponha de condições de autossustentabilidade, com vínculos familiares fragilizados ou rompidos.',
+                    'E) Na ocorrência de qualquer forma de ameaça ou de violação aos direitos da pessoa com deficiência, é dever exclusivo do assistente social do SUAS comunicar à autoridade competente o acontecimento do fato.'
+                ],
+                answer: 'D',
+                comment: 'A alternativa A é incorreta. A acessibilidade abrange diversos espaços acessíveis ao público:<br><br>Art. 3º Para fins de aplicação desta Lei, consideram-se:<br>I - acessibilidade: possibilidade e condição de alcance para utilização, com segurança e autonomia, de espaços, mobiliários, equipamentos urbanos, edificações, transportes, informação e comunicação, inclusive seus sistemas e tecnologias, bem como de outros serviços e instalações abertos ao público, de uso público ou privados de uso coletivo, tanto na zona urbana como na rural, por pessoa com deficiência ou com mobilidade reduzida;<br><br>A alternativa B é incorreta. A equipe de avaliação deve ser multiprofissional e considerar outros aspectos além dos físicos:<br><br>Art. 2º [...]<br>§ 1º A avaliação da deficiência, quando necessária, será biopsicossocial, realizada por equipe multiprofissional e interdisciplinar e considerará: (Vigência) (Vide Decreto nº 11.063, de 2022)<br><br>I - os impedimentos nas funções e nas estruturas do corpo;<br>II - os fatores socioambientais, psicológicos e pessoais;<br>III - a limitação no desempenho de atividades; e<br>IV - a restrição de participação.<br><br>A alternativa C é incorreta. A deficiência não afeta a capacidade da pessoa de exercer os direitos de família:<br><br>Art. 6º A deficiência não afeta a plena capacidade civil da pessoa, inclusive para:<br>VI - exercer o direito à guarda, à tutela, à curatela e à adoção, como adotante ou adotando, em igualdade de oportunidades com as demais pessoas.<br><br>A alternativa D é correta e é o gabarito da questão. A alternativa expressa corretamente as situações em que é concedido o benefício da residência inclusiva:<br><br>Art. 31. [...]<br>§ 2º A proteção integral na modalidade de residência inclusiva será prestada no âmbito do Suas à pessoa com deficiência em situação de dependência que não disponha de condições de autossustentabilidade, com vínculos familiares fragilizados ou rompidos.<br><br>A alternativa E é incorreta. Na verdade, todos têm o dever de comunicar à autoridade competente qualquer abuso contra a pessoa com deficiência:<br><br>Art. 7º É dever de todos comunicar à autoridade competente qualquer forma de ameaça ou de violação aos direitos da pessoa com deficiência.'
+            },
+            {
+                question: '8. Nos termos da Lei n. 13.146/2015 (Estatuto da Pessoa com Deficiência), assinale a alternativa correta:',
+                options: [
+                    'a) Nos programas habitacionais, públicos ou subsidiados com recursos públicos, a pessoa com deficiência ou o seu responsável goza de prioridade na aquisição de imóvel para moradia própria. Referido direito à prioridade será reconhecido à pessoa com deficiência beneficiária apenas uma vez.',
+                    'b) O consentimento prévio, livre e esclarecido da pessoa com deficiência é indispensável para a realização de tratamento, procedimento e pesquisa científica e dispensável para a hospitalização.',
+                    'c) Considerando a livre escolha e autonomia dos contratantes, é possível a cobrança de valores diferenciados por planos e seguros privados de saúde em razão da condição de pessoa com deficiência, desde que não abusivos.',
+                    'd) É assegurado à pessoa com deficiência, independente de solicitação, o recebimento de contas, boletos, recibos, extratos e cobranças de tributos em formato acessível.',
+                    'e) Considera-se acompanhante aquele que acompanha a pessoa com deficiência desempenhando as funções de atendente pessoal.'
+                ],
+                answer: 'A',
+                comment: 'A alternativa A está correta e é o gabarito da questão. A alternativa apresenta o disposto no caput do art. 32 e no §1º do Estatuto da Pessoa com Deficiência (Lei nº 13.146/2015):<br><br>Art. 32. Nos programas habitacionais, públicos ou subsidiados com recursos públicos, a pessoa com deficiência ou o seu responsável goza de prioridade na aquisição de imóvel para moradia própria, observado o seguinte: (...)<br>§ 1º O direito à prioridade, previsto no caput deste artigo, será reconhecido à pessoa com deficiência beneficiária apenas uma vez.<br><br>A alternativa B está incorreta. O consentimento é necessário para todas as situações apresentadas, inclusive a hospitalização, como prevê o caput do art. 12: "O consentimento prévio, livre e esclarecido da pessoa com deficiência é indispensável para a realização de tratamento, procedimento, hospitalização e pesquisa científica."<br><br>A alternativa C está incorreta. O Estatuto, no art. 23, veda expressamente tal possibilidade: "São vedadas todas as formas de discriminação contra a pessoa com deficiência, inclusive por meio de cobrança de valores diferenciados por planos e seguros privados de saúde, em razão de sua condição."<br><br>A alternativa D está incorreta. O art. 62 do Estatuto exige a solicitação para que seja efetivado o direito: "É assegurado à pessoa com deficiência, mediante solicitação, o recebimento de contas, boletos, recibos, extratos e cobranças de tributos em formato acessível."<br><br>A alternativa E está incorreta. De acordo com o art. 3º, XIV do Estatuto, o acompanhante é aquele que acompanha a pessoa com deficiência, podendo ou não desempenhar as funções de atendente pessoal.'
+            },
+            {
+                question: '9. De acordo com a Lei 13.146/2015, é assegurado à pessoa com deficiência que não possua meios para prover sua subsistência nem de tê-la provida por sua família o benefício mensal de',
+                options: [
+                    'a) um salário mínimo.',
+                    'b) uma bolsa família.',
+                    'c) meio salário mínimo.',
+                    'd) meia bolsa família.',
+                    'e) um auxílio transporte.'
+                ],
+                answer: 'A',
+                comment: 'O art. 40 do EPD prevê o benefício de prestação continuada (BPC), que é um benefício de 1 salário-mínimo mensal em favor da pessoa com deficiência que não possua meios para prover sua subsistência nem de tê-la provida por sua família:<br><br>Art. 40. É assegurado à pessoa com deficiência que não possua meios para prover sua subsistência nem de tê-la provida por sua família o benefício mensal de 1 (um) salário mínimo, nos termos da Lei nº 8.742, de 7 de dezembro de 1993.<br><br>Assim, a alternativa A é correta e é o gabarito da questão.<br>'
+            },
+            {
+                question: '10. No ano de 2015, foi promulgada a Lei Brasileira de Inclusão da Pessoa com Deficiência (Estatuto da Pessoa com Deficiência), “destinada a assegurar e a promover, em condições de igualdade, o exercício dos direitos e das liberdades fundamentais por pessoa com deficiência, visando à sua inclusão social e cidadania” (BRASIL, 2015). Com base nessa legislação específica, considere as seguintes afirmativas:<br><br>1. A educação constitui direito da pessoa com deficiência, assegurado no sistema educacional inclusivo em todos os níveis de aprendizado até que a pessoa atinja a idade adulta.<br><br>2. É dever do Estado, da família, da comunidade escolar e da sociedade assegurar educação de qualidade à pessoa com deficiência, opondo-se a toda forma de discriminação.<br><br>3. O Estado deve garantir condições de acesso, permanência, participação e aprendizagem, por meio da oferta de serviços e de recursos de acessibilidade que eliminem as barreiras e promovam a inclusão plena.<br><br>4. A oferta de educação bilíngue, em Libras como primeira língua, e na modalidade escrita da língua portuguesa como segunda língua, em escolas e classes bilíngues e em escolas inclusivas, é opcional aos sistemas de ensino.<br><br>Assinale a alternativa correta.',
+                options: [
+                    'a) Somente a afirmativa 3 é verdadeira.',
+                    'b) Somente as afirmativas 1 e 4 são verdadeiras.',
+                    'c) Somente as afirmativas 2 e 3 são verdadeiras.',
+                    'd) Somente as afirmativas 1, 2 e 4 são verdadeiras.',
+                    'e) As afirmativas 1, 2, 3 e 4 são verdadeiras.'
+                ],
+                answer: 'C',
+                comment: 'A alternativa C está correta e é o gabarito da questão. Analisaremos cada afirmativa individualmente:<br><br>Afirmativa 1 - Falsa. De acordo com o inciso I do art. 28 do Estatuto da Pessoa com Deficiência (Lei nº 13.146/2015): "Incumbe ao poder público assegurar, criar, desenvolver, implementar, incentivar, acompanhar e avaliar: sistema educacional inclusivo em todos os níveis e modalidades, bem como o aprendizado ao longo de toda a vida." Não há a restrição temporal ("até que a pessoa atinja a idade adulta") pois o aprendizado deverá ocorrer ao longo da vida.<br><br>Afirmativa 2 - Verdadeira. Corresponde ao parágrafo único do art. 27 do Estatuto: "É dever do Estado, da família, da comunidade escolar e da sociedade assegurar educação de qualidade à pessoa com deficiência, colocando-a a salvo de toda forma de violência, negligência e discriminação."<br><br>Afirmativa 3 - Verdadeira. Equivale ao inciso II do art. 28: "Incumbe ao poder público assegurar, criar, desenvolver, implementar, incentivar, acompanhar e avaliar: aprimoramento dos sistemas educacionais, visando a garantir condições de acesso, permanência, participação e aprendizagem, por meio da oferta de serviços e de recursos de acessibilidade que eliminem as barreiras e promovam a inclusão plena."<br><br>Afirmativa 4 - Falsa. A oferta de educação bilingue não é facultativa / opcional, mas uma obrigação do poder público, como disposto no art. 28, IV da Lei nº 13.146/2015: "Incumbe ao poder público assegurar, criar, desenvolver, implementar, incentivar, acompanhar e avaliar: oferta de educação bilíngue, em Libras como primeira língua e na modalidade escrita da língua portuguesa como segunda língua, em escolas e classes bilíngues e em escolas inclusivas."'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Função para renderizar uma questão
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    // Impede de selecionar outra resposta se já foi respondida
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = optionBtn.getAttribute('data-letter');
+                        checkAnswer(index);
+                        updateQuizState(); // Habilita o botão Próxima após a resposta
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            // Se a pergunta já foi respondida, exibe o resultado
+            if (userAnswers[index]) {
+                checkAnswer(index, true);
+            }
+            updateQuizState();
+        }
+
+        // Função para verificar a resposta e exibir o resultado/comentário
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswer = userAnswers[index];
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswer && userAnswer.toUpperCase() === correctLetter) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            // Exibe a resposta correta e a do usuário
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true; // Desabilita todos os botões após a resposta
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                if (optionLetter === correctLetter) {
+                    btn.classList.add('correct');
+                }
+                if (optionLetter === userAnswer && optionLetter !== correctLetter) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Exibe a seção de comentário
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        // Função para atualizar os botões de navegação e o contador
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = !!userAnswers[currentQuestionIndex];
+            
+            // O botão "Próxima" só é habilitado se a pergunta atual foi respondida
+            // e não for a última pergunta.
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+
+            // Se for a última pergunta e ela foi respondida, exibe o placar final
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        // Função para mostrar o placar final
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        // Listeners para a navegação
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Inicia o quiz
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
