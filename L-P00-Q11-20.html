@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Legislação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Legislação</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 1 de 10</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        // Array de objetos com as perguntas, opções, respostas corretas e comentários
+        const questions = [
+            {
+                question: '11. Segundo o art. 2º da Lei nº 13.146/2015, considera-se Pessoa com Deficiência aquela que:',
+                options: [
+                    'A) Tem impedimento de curto prazo de natureza física somente, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.',
+                    'B) Não tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.',
+                    'C) Tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.',
+                    'D) Tem impedimento de longo prazo de natureza mental ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.'
+                ],
+                answer: 'C',
+                comment: 'Conforme o art. 2º do EPD, pessoa com deficiência é aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial que em interação com uma ou mais barreiras pode obstruir a participação plena e efetiva em sociedade, em igualdade de oportunidades com as demais pessoas:<br><br>Art. 2º Considera-se pessoa com deficiência aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.<br><br>Assim, a alternativa C é correta e é o gabarito da questão.'
+            },
+            {
+                question: '12. Sobre os dispositivos previstos para a aplicação da Lei 13.146 de julho de 2015, assinale a alternativa correta:',
+                options: [
+                    'A) Acessibilidade: possibilidade e condição de alcance para utilização, com segurança e autonomia, de espaços, mobiliários, equipamentos urbanos, edificações, transportes, informação e comunicação, inclusive seus sistemas e tecnologias, bem como de outros serviços e instalações abertos ao público, de uso público ou privados de uso coletivo, tanto na zona urbana como na rural, por pessoa com deficiência ou com mobilidade reduzida.',
+                    'B) Tecnologia assistiva ou ajuda técnica: concepção de produtos, ambientes, programas e serviços a serem usados por todas as pessoas, sem necessidade de adaptação ou de projeto específico, incluindo os recursos de tecnologia assistiva;',
+                    'C) Desenho universal: produtos, equipamentos, dispositivos, recursos, metodologias, estratégias, práticas e serviços que objetivem promover a funcionalidade, relacionada à atividade e à participação da pessoa com deficiência ou com mobilidade reduzida, visando à sua autonomia, independência, qualidade de vida e inclusão social;',
+                    'D) Barreiras urbanísticas: barreiras existentes nos edifícios públicos e privados.'
+                ],
+                answer: 'A',
+                comment: 'A alternativa A é correta e é o gabarito da questão, apresentando corretamente o conceito de acessibilidade constante do EPD.<br><br>A alternativa B e C são incorretas. Foram trocados os conceitos de tecnologia assistiva e de desenho universal. <br><br>A alternativa D é incorreta, correspondendo ao conceito de barreira arquitetônica.'
+            },
+            {
+                question: '13. A Lei Brasileira de Inclusão (Lei 13.146/2015) tem, como base, a convenção sobre os direitos das pessoas com deficiência e seu protocolo facultativo, ratificados pelo Congresso Nacional por meio do Decreto Legislativo nº 186, de 9 de julho de 2008, em conformidade com o procedimento previsto no § 3º do art. 5º da Constituição da República Federativa do Brasil, em vigor para o Brasil, no plano jurídico externo, desde 31 de agosto de 2008, e promulgados pelo Decreto nº 6.949, de 25 de agosto de 2009, data de início de sua vigência no plano interno.<br><br>Segundo a referida Lei, podemos considerar pessoa com deficiência, aquela que',
+                options: [
+                    'A) tem uma limitação motora ou intelectual.',
+                    'B) apresenta dificuldades a nível físico, intelectual ou sensorial, que podem trazer atrasos na vida social e acadêmica do indivíduo.',
+                    'C) tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.',
+                    'D) apresenta impedimentos de curto prazo de natureza física ou sensorial e que obstrui a sua participação efetiva na sociedade.',
+                    'E) com atrasos de natureza física, mental, intelectual e sensorial que impedem a participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.'
+                ],
+                answer: 'C',
+                comment: 'Conforme o art. 2º do EPD, pessoa com deficiência é aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial que em interação com uma ou mais barreiras pode obstruir a participação plena e efetiva em sociedade, em igualdade de oportunidades com as demais pessoas:<br><br>Art. 2º Considera-se pessoa com deficiência aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas. <br><br>Assim, a alternativa C é correta e é o gabarito da questão.'
+            },
+            {
+                question: '14. Analise a assertiva a seguir.<br>Para fins da aplicação da Lei Brasileira de Inclusão da Pessoa com Deficiência, considera-se pessoa com deficiência aquela que tem __________ de longo prazo de natureza __________, __________, intelectual ou__________, o qual, em interação com uma ou mais __________, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.<br><br>Marque a opção que preenche CORRETA e respectivamente as lacunas.',
+                options: [
+                    'A) impedimento / física / mental / sensorial / barreiras',
+                    'B) dificuldade / mental / física / atitudinal / pessoas',
+                    'C) transtorno / mental / sensorial / comportamental / barreiras',
+                    'D) impedimento / sensorial / física / comportamental / pessoas',
+                    'E) dificuldade / física / mental / sensorial / barreiras'
+                ],
+                answer: 'A',
+                comment: 'Conforme o art. 2º do EPD, pessoa com deficiência é aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial que em interação com uma ou mais barreiras pode obstruir a participação plena e efetiva em sociedade, em igualdade de oportunidades com as demais pessoas:<br><br>Art. 2º Considera-se pessoa com deficiência aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas. <br><br>Assim, a alternativa A é correta e é o gabarito da questão.'
+            },
+            {
+                question: '15. Acerca da caracterização e do conceito de pessoa com deficiência na ordem interna e internacional, considere as seguintes afirmativas.<br><br>I – As deficiências são definidas a partir de uma lista fechada de diagnósticos.<br><br>II – A avaliação da deficiência deve ser feita de acordo com critérios biopsicossociais.<br><br>III – O modelo atualmente em vigor para caracterização das pessoas com deficiência é o modelo médico.<br><br>IV – O modelo atualmente em vigor para caracterização das pessoas com deficiência é o modelo social.<br><br>Estão corretas as afirmativas constantes dos itens:',
+                options: [
+                    'A) I, II, III e IV.',
+                    'B) I, II e III.',
+                    'C) I, II e IV.',
+                    'D) I e III.',
+                    'E) II e IV.'
+                ],
+                answer: 'E',
+                comment: 'A assertiva I é incorreta. O conceito de deficiência é amplo, e não restritivo, abrangendo qualquer impedimento de longo prazo de natureza física, mental, intelectual ou sensorial que em interação com uma ou mais barreiras pode obstruir a participação plena e efetiva em sociedade, em igualdade de oportunidades com as demais pessoas:<br><br>Art. 2º Considera-se pessoa com deficiência aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.<br><br>A assertiva II é correta. A avaliação da deficiência é biopsicossocial, de acordo com o art. 2º, § 1º:<br><br>Art. 2º [...]<br><br>§ 1º A avaliação da deficiência, quando necessária, será biopsicossocial, realizada por equipe multiprofissional e interdisciplinar e considerará: (Vigência) (Vide Decreto nº 11.063, de 2022)<br><br>A assertiva III é incorreta. A avaliação da deficiência depende da constatação de que existem, efetivamente, barreiras à participação social da pessoa com o impedimento, o que denota que foi adotado um modelo social, não médico, da deficiência.<br><br>A assertiva IV é correta, de acordo com o fundamento exposto logo acima. <br><br>Como somente as assertivas II e IV estão certas, a alternativa E é correta e é o gabarito da questão.'
+            },
+            {
+                question: '16. De acordo com o artigo 3 da lei n°. 13.146/2015, Estatuto da pessoa com deficiência, as barreiras atitudinais são',
+                options: [
+                    'A) atitudes ou comportamentos que impeçam ou prejudiquem a participação social da pessoa com deficiência em igualdade de condições e oportunidades com as demais pessoas.',
+                    'B) as barreiras que dificultam ou impedem o acesso da pessoa com deficiência às tecnologias.',
+                    'C) qualquer entrave, obstáculo, atitude ou comportamento que dificulte ou impossibilite a expressão ou o recebimento de mensagens e de informações por intermédio de sistemas de comunicação e de tecnologia da informação.',
+                    'D) as barreiras existentes nas vias e nos espaços públicos e privados abertos ao público ou de uso coletivo.',
+                    'E) as barreiras existentes nos sistemas e meios de transportes.'
+                ],
+                answer: 'A',
+                comment: 'Barreiras atitudinais são atitudes ou comportamentos que impedem ou prejudica a participação social da pessoa com deficiência em igualdade de condições e oportunidades com as demais pessoas:<br><br>Art. 3º Para fins de aplicação desta Lei, consideram-se:<br><br>IV - barreiras: qualquer entrave, obstáculo, atitude ou comportamento que limite ou impeça a participação social da pessoa, bem como o gozo, a fruição e o exercício de seus direitos à acessibilidade, à liberdade de movimento e de expressão, à comunicação, ao acesso à informação, à compreensão, à circulação com segurança, entre outros, classificadas em:<br><br>e) barreiras atitudinais: atitudes ou comportamentos que impeçam ou prejudiquem a participação social da pessoa com deficiência em igualdade de condições e oportunidades com as demais pessoas;<br><br>Assim, a alternativa A é correta e é o gabarito da questão.'
+            },
+            {
+                question: '17. A Lei 13.146 de julho de 2015 institui a Lei Brasileira de Inclusão da Pessoa com Deficiência (Estatuto da Pessoa com Deficiência), destinada a assegurar e a promover, em condições de igualdade, o exercício dos direitos e das liberdades fundamentais por pessoa com deficiência, visando à sua inclusão social e cidadania.<br><br>De acordo com esta lei, considera-se tecnologia assistiva ou ajuda técnica:',
+                options: [
+                    'A) produtos, equipamentos, dispositivos, recursos, metodologias, estratégias, práticas e serviços que objetivem promover a funcionalidade, relacionada à atividade e à participação da pessoa com deficiência ou com mobilidade reduzida, visando à sua autonomia, independência, qualidade de vida e inclusão social.',
+                    'B) toda a ajuda necessária para promover a funcionalidade, relacionada à atividade e à participação da pessoa com mobilidade reduzida, visando à sua autonomia, independência, qualidade de vida e inclusão social.',
+                    'C) produtos e equipamentos que objetivem promover a funcionalidade, relacionada à atividade e à participação da pessoa com deficiência, visando à sua autonomia, independência, qualidade de vida e integração social.',
+                    'D) produtos, equipamentos, dispositivos, recursos, metodologias, estratégias, práticas e serviços que ajudem a pessoa com deficiência a ser incluída na escola regular sem discriminação.',
+                    'E) todos produtos e ajudas necessários para promover a funcionalidade, relacionada à atividade e à participação da pessoa com deficiência ou com mobilidade reduzida, visando à sua autonomia, independência, qualidade de vida e integração social.'
+                ],
+                answer: 'A',
+                comment: 'Tecnologia assistiva ou ajuda técnica são produtos, equipamentos, dispositivos, recursos, metodologias, estratégias, práticas e serviços que objetivem promover a funcionalidade, relacionada à atividade e à participação da pessoa com deficiência ou com mobilidade reduzida, visando à sua autonomia, independência, qualidade de vida e inclusão social:<br><br>Art. 3º Para fins de aplicação desta Lei, consideram-se: [...]<br><br>III - tecnologia assistiva ou ajuda técnica: produtos, equipamentos, dispositivos, recursos, metodologias, estratégias, práticas e serviços que objetivem promover a funcionalidade, relacionada à atividade e à participação da pessoa com deficiência ou com mobilidade reduzida, visando à sua autonomia, independência, qualidade de vida e inclusão social;<br><br>Assim, a alternativa A é correta e é o gabarito da questão.'
+            },
+            {
+                question: '18. Preencha corretamente as lacunas do fragmento a seguir, extraído do Estatuto da Pessoa com Deficiência (Lei Federal nº 13.146, de 2015).<br>Considera-se pessoa com deficiência aquela que tem impedimento de __________ prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais __________, pode obstruir sua participação plena e efetiva na sociedade em __________ de condições com as demais pessoas.<br>A sequência que preenche corretamente as lacunas do fragmento é',
+                options: [
+                    'A) longo / barreiras / igualdade',
+                    'B) curto / pessoas / proximidade',
+                    'C) longo / situações / desigualdade',
+                    'D) médio / barreiras / superioridade'
+                ],
+                answer: 'A',
+                comment: 'Conforme o art. 2º do EPD, pessoa com deficiência é aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial que em interação com uma ou mais barreiras pode obstruir a participação plena e efetiva em sociedade, em igualdade de oportunidades com as demais pessoas:<br><br>Art. 2º Considera-se pessoa com deficiência aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas. <br><br>Assim, a alternativa A é correta e é o gabarito da questão.'
+            },
+            {
+                question: '19. A Lei nº 13.146, de 6 de julho de 2015 institui a Lei Brasileira de Inclusão da Pessoa com Deficiência (Estatuto da Pessoa com Deficiência), destinada a assegurar e a promover, em condições de igualdade, o exercício dos direitos e das liberdades fundamentais por pessoa com deficiência, visando à sua inclusão social e cidadania.<br>Com base na referida lei, julgue os itens a seguir:<br><br>I- acessibilidade: possibilidade e condição de alcance para utilização, com segurança e autonomia, de espaços, mobiliários, equipamentos urbanos, edificações, transportes, informação e comunicação, inclusive seus sistemas e tecnologias, bem como de outros serviços e instalações abertos ao público, de uso público ou privados de uso coletivo, tanto na zona urbana como na rural, por pessoa com deficiência ou com mobilidade reduzida.<br><br>II- desenho universal: concepção de produtos, ambientes, programas e serviços a serem usados por todas as pessoas, sem necessidade de adaptação ou de projeto específico, incluindo os recursos de tecnologia assistiva.<br><br>III- tecnologia assistiva ou ajuda técnica: produtos, equipamentos, dispositivos, recursos, metodologias, estratégias, práticas e serviços que objetivem promover a funcionalidade, relacionada à atividade e à participação da pessoa com deficiência ou com mobilidade reduzida, visando à sua autonomia, independência, qualidade de vida e inclusão social.<br><br>IV- adaptações razoáveis: quaisquer componentes de obras de urbanização, tais como os referentes a pavimentação, saneamento, encanamento para esgotos, distribuição de energia elétrica e de gás, iluminação pública, serviços de comunicação, abastecimento e distribuição de água, paisagismo e os que materializam as indicações do planejamento urbanístico.<br><br>V- residências inclusivas: unidades de oferta do Serviço de Acolhimento do Sistema Único de Assistência Social (Suas) localizadas em áreas residenciais da comunidade, com estruturas adequadas, que possam contar com apoio psicossocial para o atendimento das necessidades da pessoa acolhida, destinadas a jovens e adultos com deficiência, em situação de dependência, que não dispõem de condições de autossustentabilidade e com vínculos familiares fragilizados ou rompidos.<br><br>É CORRETO o que se afirma em:',
+                options: [
+                    'A) Itens I, II, III e IV apenas.',
+                    'B) Itens II, III, IV e V apenas.',
+                    'C) Itens I, II, III e V apenas.',
+                    'D) Itens II e V Apenas.',
+                    'E) Todos os itens'
+                ],
+                answer: 'C',
+                comment: 'A assertiva I é correta, expondo corretamente o conceito de acessibilidade.<br><br>A assertiva II é correta, apontando corretamente o conceito de desenho universal.<br><br>A assertiva III é correta, registrando corretamente o conceito de tecnologia assistiva. A assertiva IV é incorreta. Adaptações razoáveis são adaptações, modificações e ajustes necessários e adequados que não acarretem ônus desproporcional e indevido, quando requeridos em cada caso, a fim de assegurar que a pessoa com deficiência possa gozar ou exercer, em igualdade de condições e oportunidades com as demais pessoas, todos os direitos e liberdades fundamentais:<br><br>VI - adaptações razoáveis: adaptações, modificações e ajustes necessários e adequados que não acarretem ônus desproporcional e indevido, quando requeridos em cada caso, a fim de assegurar que a pessoa com deficiência possa gozar ou exercer, em igualdade de condições e oportunidades com as demais pessoas, todos os direitos e liberdades fundamentais;<br><br>A assertiva V é correta, dando corretamente o conceito de residência inclusiva.<br><br>Como estão corretas as assertivas I, II, III e V, a alternativa C é correta e é o gabarito da questão.'
+            },
+            {
+                question: '20. A Lei nº 13.146, de 6 de julho de 2015 institui a Lei Brasileira de Inclusão da Pessoa com Deficiência (Estatuto da Pessoa com Deficiência) considera barreiras: qualquer entrave, obstáculo, atitude ou comportamento que limite ou impeça a participação social da pessoa, bem como o gozo, a fruição e o exercício de seus direitos à acessibilidade, à liberdade de movimento e de expressão, à comunicação, ao acesso à informação, à compreensão, à circulação com segurança, entre outros.<br><br>Assinale a alternativa na qual a classificação de barreiras está adequada segundo a referida lei:',
+                options: [
+                    'A) barreiras urbanísticas: as existentes nas vias e nos espaços públicos e privados abertos ao público ou de uso coletivo.',
+                    'B) barreiras atitudinais: as existentes nos edifícios públicos e privados.',
+                    'C) barreiras tecnológicas: as existentes nos sistemas e meios de transportes.',
+                    'D) barreiras nos transportes: qualquer entrave, obstáculo, atitude ou comportamento que dificulte ou impossibilite a expressão ou o recebimento de mensagens e de informações por intermédio de sistemas de comunicação e de tecnologia da informação.',
+                    'E) barreiras as comunicações e na informação: as que dificultam ou impedem o acesso da pessoa com deficiência às tecnologias.'
+                ],
+                answer: 'A',
+                comment: 'O art. 3º, IV, do ECD traz as diversas espécies de barreira:<br><br>Art. 3º. Para fins de aplicação desta Lei, consideram-se: [...]<br><br>IV - barreiras: qualquer entrave, obstáculo, atitude ou comportamento que limite ou impeça a participação social da pessoa, bem como o gozo, a fruição e o exercício de seus direitos à acessibilidade, à liberdade de movimento e de expressão, à comunicação, ao acesso à informação, à compreensão, à circulação com segurança, entre outros, classificadas em:<br><br>a) barreiras urbanísticas: as existentes nas vias e nos espaços públicos e privados abertos ao público ou de uso coletivo;<br><br>b) barreiras arquitetônicas: as existentes nos edifícios públicos e privados;<br><br>c) barreiras nos transportes: as existentes nos sistemas e meios de transportes;<br><br>d) barreiras nas comunicações e na informação: qualquer entrave, obstáculo, atitude ou comportamento que dificulte ou impossibilite a expressão ou o recebimento de mensagens e de informações por intermédio de sistemas de comunicação e de tecnologia da informação;<br><br>e) barreiras atitudinais: atitudes ou comportamentos que impeçam ou prejudiquem a participação social da pessoa com deficiência em igualdade de condições e oportunidades com as demais pessoas;<br><br>f) barreiras tecnológicas: as que dificultam ou impedem o acesso da pessoa com deficiência às tecnologias;<br><br>A alternativa A, que é correta e é o gabarito da questão, expõe corretamente o conceito de barreira urbanística.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Função para renderizar uma questão
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    // Impede de selecionar outra resposta se já foi respondida
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = optionBtn.getAttribute('data-letter');
+                        checkAnswer(index);
+                        updateQuizState(); // Habilita o botão Próxima após a resposta
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            // Se a pergunta já foi respondida, exibe o resultado
+            if (userAnswers[index]) {
+                checkAnswer(index, true);
+            }
+            updateQuizState();
+        }
+
+        // Função para verificar a resposta e exibir o resultado/comentário
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswer = userAnswers[index];
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswer && userAnswer.toUpperCase() === correctLetter) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            // Exibe a resposta correta e a do usuário
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true; // Desabilita todos os botões após a resposta
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                if (optionLetter === correctLetter) {
+                    btn.classList.add('correct');
+                }
+                if (optionLetter === userAnswer && optionLetter !== correctLetter) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Exibe a seção de comentário
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        // Função para atualizar os botões de navegação e o contador
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = !!userAnswers[currentQuestionIndex];
+            
+            // O botão "Próxima" só é habilitado se a pergunta atual foi respondida
+            // e não for a última pergunta.
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+
+            // Se for a última pergunta e ela foi respondida, exibe o placar final
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        // Função para mostrar o placar final
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        // Listeners para a navegação
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Inicia o quiz
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
