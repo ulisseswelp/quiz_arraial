@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Legislação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Legislação - Parte 00</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 1 de 10</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        // Array de objetos com as perguntas, opções, respostas corretas e comentários
+        const questions = [
+            {
+                question: 'A Lei nº 13.146, de 6 de julho de 2015, institui a Lei Brasileira de Inclusão da Pessoa com Deficiência. De acordo com o art. 4º, toda pessoa com deficiência tem direito à igualdade de oportunidades com as demais pessoas e não sofrerá nenhuma espécie de discriminação.<br><br>Desse modo, de acordo com o § 1º da Lei Brasileira de Inclusão da Pessoa com Deficiência, caracteriza discriminação em razão da deficiência:<br><br>1. A recusa em fornecer adaptações razoáveis para uma pessoa com deficiência.<br>2. A distinção positiva que visa promover a inclusão social da pessoa com deficiência.<br>3. A omissão na implementação de tecnologias assistivas necessárias para o exercício dos direitos de uma pessoa com deficiência.<br>4. A exclusão de uma pessoa com deficiência de uma atividade social por falta de acessibilidade.<br>5. A restrição ao acesso de uma pessoa com deficiência a determinados serviços por questões financeiras.<br><br>Assinale a alternativa que indica todas as afirmativas corretas.',
+                options: [
+                    'A) São corretas apenas as afirmativas 2 e 4.',
+                    'B) São corretas apenas as afirmativas 2 e 5.',
+                    'C) São corretas apenas as afirmativas 1, 2 e 3.',
+                    'D) São corretas apenas as afirmativas 1, 2 e 4.',
+                    'E) São corretas apenas as afirmativas 1, 3, 4 e 5.'
+                ],
+                answer: 'E',
+                comment: 'O art. 4º, § 1º, do Estatuto da Pessoa com Deficiência, traz a definição legal de discriminação em razão da deficiência:<br><br>Art. 4º. [...].<br>§ 1º Considera-se discriminação em razão da deficiência toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas.<br><br>A afirmativa 1 é correta. De acordo com a parte final, constitui discriminação a conduta de recusar adaptação razoável a pessoa com deficiência.<br><br>A afirmativa 2 é incorreta. As discriminações são distinções negativas, distinções que visam trazer prejuízo a um certo grupo excluído. Distinções positivas são medidas de promoção do grupo excluído, para que este alcance condição de igualdade material em relação às demais pessoas. Distinções positivas são incentivadas, como quando se prevê o direito da pessoa com deficiência ao fornecimento de adaptação razoável. Esse tipo de distinção não caracteriza discriminação.<br><br>A afirmativa 3 é correta. A omissão pode caracterizar discriminação, particularmente a omissão no fornecimento de meios que assegurem a igualdade material da pessoa com deficiência, como as tecnologias assistivas.<br><br>A afirmativa 4 é correta. A falta de acessibilidade não deve ser um impeditivo à participação da pessoa com deficiência em uma atividade social.<br>A participação deve ser promovida por meios técnicos adequados.<br><br>A afirmativa 5 é correta. Qualquer tipo de restrição ao acesso a serviço em desfavor de pessoa com deficiência é discriminação, ainda que por questões financeiras.<br><br>Como as afirmativas 1, 3, 4 e 5 são corretas, a alternativa E é correta e é o gabarito da questão.'
+            },
+            {
+                question: 'O art. 12 da Lei Brasileira de Inclusão da Pessoa com Deficiência dispõe sobre o consentimento prévio para a realização de tratamento, procedimento, hospitalização e pesquisa científica.<br>Identifique abaixo as afirmativas verdadeiras ( V ) e as falsas ( F ) em relação ao tema.<br><br>( ) O consentimento prévio da pessoa com deficiência é dispensável para a realização de tratamento.<br>( ) O consentimento deve ser livre e esclarecido para a realização de procedimentos médicos em pessoas com deficiência.<br>( ) A hospitalização de uma pessoa com deficiência pode ser feita sem seu consentimento prévio, desde que não tenha caráter de urgência.<br>( ) O consentimento prévio, livre e esclarecido é necessário para a participação de uma pessoa com deficiência em pesquisa científica.<br>( ) O consentimento de uma pessoa com deficiência para procedimentos médicos pode ser obtido posteriormente à realização do procedimento.<br><br>Assinale a alternativa que indica a sequência correta, de cima para baixo.',
+                options: [
+                    'A) V • V • F • V • F',
+                    'B) V • F • V • F • V',
+                    'C) F • V • V • F • V',
+                    'D) F • V • F • V • F',
+                    'E) F • F • V • F • V'
+                ],
+                answer: 'd',
+                comment: 'A assertiva I é Falsa. É exigível o consentimento prévio da pessoa com deficiência para a realização de tratamento, de acordo com o art. 12 do Estatuto da Pessoa com Deficiência:<br><br>Art. 12. O consentimento prévio, livre e esclarecido da pessoa com deficiência é indispensável para a realização de tratamento, procedimento, hospitalização e pesquisa científica.<br><br>A assertiva II é Verdadeira. Conforme o art. 12, o consentimento deve ser prévio, livre e esclarecido. Livre significa que o consentimento é prestado sem qualquer tipo de coerção contra a pessoa; esclarecido significa que a natureza e as consequências do procedimento são de conhecimento da pessoa que se submete ao tratamento.<br><br>A assertiva III é Falsa. É possível dispensa o consentimento prévio quando o tratamento a ser oferecido for urgente por envolver risco de morte e de emergência em saúde. Se não houver urgência, é exigível o consentimento:<br><br>Art. 13. A pessoa com deficiência somente será atendida sem seu consentimento prévio, livre e esclarecido em casos de risco de morte e de emergência em saúde, resguardado seu superior interesse e adotadas as salvaguardas legais cabíveis.<br><br>A assertiva IV é Verdadeira. O consentimento prévio, livre e esclarecido também é exigido para a participação em pesquisas científicas, de acordo com o art. 12 já transcrito.<br><br>A assertiva V é Falsa. O consentimento deve ser sempre prévio. Nos casos de urgência não se exige consentimento. Aliás, não faz sentido falar em consentimento posterior; o que se pode fazer após o procedimento médico é esclarecer à pessoa a natureza e as consequências da intervenção, mas não é possível obter consentimento a posteriori.<br><br>Como a sequência correta é F, V, F, V, F, a alternativa D é correta e é o gabarito da questão.'
+            },
+            {
+                question: 'Com base no art. 28 da Lei Brasileira de Inclusão da Pessoa com Deficiência, incumbe ao poder público assegurar, criar, desenvolver, implementar, incentivar, acompanhar e avaliar uma série de medidas para promover a inclusão educacional de pessoas com deficiência.<br>Identifique abaixo as afirmativas verdadeiras ( V ) e as falsas ( F ) em relação ao tema.<br><br>( ) É responsabilidade do poder público implementar um sistema educacional inclusivo em todos os níveis e modalidades.<br>( ) O poder público deve garantir a oferta de educação bilíngue, em Libras como primeira língua e na modalidade escrita da língua portuguesa como segunda língua.<br>( ) A inclusão de conteúdos relacionados à pessoa com deficiência nos currículos de nível superior e técnico é opcional, dependendo das políticas de cada instituição.<br>( ) O aprimoramento dos sistemas educacionais inclui a oferta de serviços e recursos de acessibilidade para eliminar barreiras e promover a inclusão plena.<br>( ) A articulação intersetorial na implementação de políticas públicas não é necessária, pois a inclusão pode ser promovida apenas pelas instituições de ensino.<br><br>Assinale a alternativa que indica a sequência correta, de cima para baixo.',
+                options: [
+                    'A) V • V • V • F • V',
+                    'B) F • V • F • V • F',
+                    'C) V • F • V • F • V',
+                    'D) F • F • V • V • F',
+                    'E) V • V • F • V • F'
+                ],
+                answer: 'e',
+                comment: 'A <b>assertiva I</b> é Verdadeira. Deve ser implementado pelo poder público sistema educacional inclusivo em todos os níveis e modalidades, de acordo com o art. 28, I, do Estatuto da Pessoa com Deficiência:<br><br>Art. 28. Incumbe ao poder público assegurar, criar, desenvolver, implementar, incentivar, acompanhar e avaliar:<br><br>I – sistema educacional inclusivo em todos os níveis e modalidades, bem como o aprendizado ao longo de toda a vida;<br><br><b>A assertiva II</b> é Verdadeira. Deve-se assegurar a oferta de educação bilíngue, com Libras como primeira língua e português na modalidade escrita como segunda:<br><br>Art. 28. Incumbe ao poder público assegurar, criar, desenvolver, implementar, incentivar, acompanhar e avaliar:<br><br>IV - oferta de educação bilíngue, em Libras como primeira língua e na modalidade escrita da língua portuguesa como segunda língua, em escolas e classes bilíngues e em escolas inclusivas;<br><br><b>A assertiva III</b> é Falsa. Não se trata de opção, mas de obrigação, de acordo com o art. 28, XIII:<br><br> Art. 28. Incumbe ao poder público assegurar, criar, desenvolver, implementar, incentivar, acompanhar e avaliar:<br><br>XIII - acesso à educação superior e à educação profissional e tecnológica em igualdade de oportunidades e condições com as demais pessoas;<br><br><b>A assertiva IV</b> é Verdadeira. A oferta de serviços e recursos de acessibilidade é um aprimoramento dos sistemas educacionais:<br><br>Art. 28. Incumbe ao poder público assegurar, criar, desenvolver, implementar, incentivar, acompanhar e avaliar:<br><br>II - aprimoramento dos sistemas educacionais, visando a garantir condições de acesso, permanência, participação e aprendizagem, por meio da oferta de serviços e de recursos de acessibilidade que eliminem as barreiras e promovam a inclusão plena;<br><br>A <b>assertiva V</b> é Falsa. Não se trata de prática desnecessária, mas de obrigação do poder público como forma de assegurar a efetividade das políticas inclusivas:<br><br>Art. 28. Incumbe ao poder público assegurar, criar, desenvolver, implementar, incentivar, acompanhar e avaliar:<br><br>XVIII - articulação intersetorial na implementação de políticas públicas.<br><br>Como a sequência correta é V, V, F, V, F, a <b>alternativa E</b> é correta e é o gabarito da questão.'
+            },
+            {
+                question: 'Em conformidade com a Lei nº 13.146/2015 - Estatuto da Pessoa com Deficiência, assinalar a alternativa CORRETA:',
+                options: [
+                    'A) A deficiência afeta a plena capacidade civil da pessoa, inclusive para casar-se e constituir união estável.',
+                    'B) A pessoa com deficiência tem direito a receber atendimento prioritário com a finalidade de acesso a informações e disponibilização de recursos de comunicação acessíveis.',
+                    'C) A pessoa com deficiência tem direito à cultura, ao esporte, ao turismo e ao lazer em igualdade de oportunidades com as demais pessoas, sendo-lhe garantido o acesso a bens culturais em formato acessível ou não.',
+                    'D) A acessibilidade só garante à pessoa com deficiência ou com mobilidade reduzida viver de forma dependente.',
+                    'E) A adaptação razoável será sempre tomada como regra de caráter geral.<br>Nas hipóteses em que comprovadamente a adaptação razoável não possa ser empreendida, deve ser adotado o desenho universal.'
+                ],
+                answer: 'B',
+                comment: 'A alternativa A é incorreta. De acordo com o art. 6º do EPD, a deficiência não afeta a plena capacidade civil da pessoa com deficiência:<br><br>Art. 6º A deficiência não afeta a plena capacidade civil da pessoa, inclusive para:<br><br>A alternativa B é correta e é o gabarito da questão. A pessoa com deficiência tem direito a prioridade, inclusive no que diz respeito ao acesso a informações e à disponibilização de recursos de comunicação acessíveis, de acordo com o art. 9º, V:<br><br>Art. 9º A pessoa com deficiência tem direito a receber atendimento prioritário, sobretudo com a finalidade de:<br><br>V - acesso a informações e disponibilização de recursos de comunicação acessíveis;<br>A alternativa C é incorreta. Na verdade, a pessoa com deficiência tem direito a acessar bens culturais em formato acessível, conforme o art. 42, I:<br><br>Art. 42. A pessoa com deficiência tem direito à cultura, ao esporte, ao turismo e ao lazer em igualdade de oportunidades com as demais pessoas, sendo-lhe garantido o acesso:<br><br>I - a bens culturais em formato acessível;<br><br>A alternativa D é incorreta. A acessibilidade deve garantir à pessoa com deficiência a possibilidade de viver independente, conforme o art. 53:<br><br>Art. 53. A acessibilidade é direito que garante à pessoa com deficiência ou com mobilidade reduzida viver de forma independente e exercer seus direitos de cidadania e de participação social.<br><br>A alternativa E é incorreta. Na verdade, a regra é o contrário: o desenho universal é a regra geral, enquanto a adaptação razoável deve ser empreendida quando inviável o desenho universal:<br><br>Art. 55. A concepção e a implantação de projetos que tratem do meio físico, de transporte, de informação e comunicação, inclusive de sistemas e tecnologias da informação e comunicação, e de outros serviços, equipamentos e instalações abertos ao público, de uso público ou privado de uso coletivo, tanto na zona urbana como na rural, devem atender aos princípios do desenho universal, tendo como referência as normas de acessibilidade.<br><br>§ 1º O desenho universal será sempre tomado como regra de caráter geral.<br><br>§ 2º Nas hipóteses em que comprovadamente o desenho universal não possa ser empreendido, deve ser adotada adaptação razoável.'
+            },
+            {
+                question: 'A concepção de uma sociedade inclusiva equitativa e verdadeira se vincula, também, ao cuidado com a linguagem. Conforme a Lei nº 13.146/2015, a terminologia correta da área de inclusão é',
+                options: [
+                    'A) portadores de deficiência.',
+                    'B) pessoas ditas deficientes.',
+                    'C) pessoas especiais.',
+                    'D) pessoas com deficiência.'
+                ],
+                answer: 'D',
+                comment: 'A terminologia correta é pessoa com deficiência:<br>Art. 1º É instituída a Lei Brasileira de Inclusão da Pessoa com Deficiência (Estatuto da Pessoa com Deficiência), destinada a assegurar e a promover, em condições de igualdade, o exercício dos direitos e das liberdades fundamentais por pessoa com deficiência, visando à sua inclusão social e cidadania.<br><br>A alternativa D é a correta e é o gabarito da questão.'
+            },
+            {
+                question: 'De acordo com o § 1º do Art. 2º da Lei Nº 13.146, DE 6 DE JULHO DE 2015 (Estatuto da Pessoa com Deficiência), a avaliação da deficiência, quando necessária, será biopsicossocial, realizada por equipe multiprofissional e interdisciplinar e considerará:<br><br>I- os impedimentos nas funções e nas estruturas do corpo.<br>II- os fatores socioambientais, psicológicos e pessoais.<br>III- a limitação no desempenho de atividades.<br>IV- a restrição de participação.<br><br>Julgue os itens acima e marque abaixo a alternativa CORRETA:',
+                options: [
+                    'A) I, II, III e IV.',
+                    'B) I, II e IV, apenas.',
+                    'C) I e II, apenas.',
+                    'D) II, apenas.',
+                    'E) I, apenas.'
+                ],
+                answer: 'A',
+                comment: 'Os elementos que serão analisados na avaliação biopsicossocial são os previstos no art. 2º, § 1º, do EPD:<br><br>Art. 2º [...]<br>§ 1º A avaliação da deficiência, quando necessária, será biopsicossocial, realizada por equipe multiprofissional e interdisciplinar e considerará: (Vigência) (Vide Decreto nº 11.063, de 2022)<br>I - os impedimentos nas funções e nas estruturas do corpo;<br>II - os fatores socioambientais, psicológicos e pessoais;<br>III - a limitação no desempenho de atividades; e<br>IV - a restrição de participação.<br><br>Todos os elementos mencionados na questão coincidem com os elementos previstos na lei, assim, a alternativa A é correta e é o gabarito da questão.'
+            },
+            {
+                question: 'De acordo com o Capítulo II do título I, do Estatuto da Pessoa com Deficiência, é correto afirmar que, se uma pessoa nessa condição vivenciar alguma forma de distinção, restrição ou exclusão, por ação ou omissão que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício de seus direitos e de suas liberdades fundamentais, essa pessoa estará sendo',
+                options: [
+                    'A) violentada.',
+                    'B) beneficiada.',
+                    'C) criminalizada.',
+                    'D) discriminada.'
+                ],
+                answer: 'D',
+                comment: 'De acordo com o art. 4º, § 1º, considera-se como discriminação toda conduta que distingue, restringe ou exclui os direitos da pessoa com deficiência:<br><br>Art. 4º [...]<br>§ 1º Considera-se discriminação em razão da deficiência toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas.<br><br>Assim, a alternativa D é correta e é o gabarito da questão'
+            },
+            {
+                question: 'Segundo o artigo 6º da Lei nº 13.146, de 06 de julho de 2015, é correto afirmar que a deficiência não afeta a plena capacidade civil da pessoa, EXCETO para:',
+                options: [
+                    'A) Exercer direitos sexuais e reprodutivos.',
+                    'B) Exercer o direito de decidir sobre o número de filhos e de ter acesso a informações adequadas sobre reprodução e planejamento familiar.',
+                    'C) Casar-se e constituir união estável.',
+                    'D) Exercer o direito à guarda, à tutela, à curatela e à adoção, como adotante ou adotando, em desigualdade de oportunidades com as demais pessoas, tendo preferência.'
+                ],
+                answer: 'D',
+                comment: 'O art. 6º expressa uma série de direitos da pessoa com deficiência, que não são excluídos tão somente em razão da deficiência:<br><br>Art. 6º A deficiência não afeta a plena capacidade civil da pessoa, inclusive para:<br>I - casar-se e constituir união estável;<br>II - exercer direitos sexuais e reprodutivos;<br>III - exercer o direito de decidir sobre o número de filhos e de ter acesso a informações adequadas sobre reprodução e planejamento familiar;<br>IV - conservar sua fertilidade, sendo vedada a esterilização compulsória;<br>V - exercer o direito à família e à convivência familiar e comunitária; e<br>VI - exercer o direito à guarda, à tutela, à curatela e à adoção, como adotante ou adotando, em igualdade de oportunidades com as demais pessoas.<br><br>Ao contrário do que afirma a alternativa D, que é correta e é o gabarito da questão, a pessoa com deficiência tem o direito de exercer a guarda, a tutela, a curatela ou a adoção em igualdade de oportunidades com as demais pessoas'
+            },
+            {
+                question: 'A Lei 13.146 de 06 de julho de 2015 – Lei Brasileira de Inclusão da Pessoa com Deficiência – prevê que toda a pessoa com deficiência tem direito à igualdade de oportunidades com as demais pessoas e não sofrerá nenhuma espécie de discriminação.<br><br>A deficiência não afeta a plena capacidade civil da pessoa, sobre essa previsão legal assinale a alternativa INCORRETA:',
+                options: [
+                    'A) Casar-se e constituir união estável.',
+                    'B) Exercer o direito à família e à convivência familiar e comunitária.',
+                    'C) Exercer direitos sexuais e reprodutivos.',
+                    'D) Conservar sua fertilidade, sendo permitida a esterilização compulsória.'
+
+                ],
+                answer: 'D',
+                comment: 'O art. 6º expressa uma série de direitos da pessoa com deficiência, que não são excluídos tão somente em razão da deficiência:<br><br>Art. 6º A deficiência não afeta a plena capacidade civil da pessoa, inclusive para:<br>I - casar-se e constituir união estável;<br>II - exercer direitos sexuais e reprodutivos;<br>III - exercer o direito de decidir sobre o número de filhos e de ter acesso a informações adequadas sobre reprodução e planejamento familiar;<br>IV - conservar sua fertilidade, sendo vedada a esterilização compulsória;<br>V - exercer o direito à família e à convivência familiar e comunitária; e<br>VI - exercer o direito à guarda, à tutela, à curatela e à adoção, como adotante ou adotando, em igualdade de oportunidades com as demais pessoas.<br><br>De acordo com o inciso IV, a pessoa com deficiência tem o direito de conservar sua fertilidade, sendo vedada a esterilização compulsória. Assim, a alternativa D é errada e é o gabarito da questão.'
+            },
+            {
+                question: 'De acordo com a Lei nº 13.146, de 6 de julho de 2015, Lei Brasileira de Inclusão da Pessoa com Deficiência, analise as afirmativas a seguir e marque (V) para as VERDADEIRAS e (F) para as FALSAS, quanto ao que prevê a referida Lei.<br><br>( ) Toda pessoa com deficiência tem direito à igualdade de oportunidades com as demais pessoas e não sofrerá nenhuma espécie de discriminação.<br>( ) Considera-se pessoa com deficiência aquela que tem impedimento de curto prazo e de natureza exclusivamente física, sem prejuízo de interação com uma ou mais barreiras, nem de sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.<br>( ) É dever de todos comunicar à autoridade competente qualquer forma de ameaça ou de violação aos direitos da pessoa com deficiência.<br>( ) Compete ao Poder Público garantir a dignidade da pessoa com deficiência ao longo de toda a vida.,br><br>Marque a opção que apresenta a sequência CORRETA.',
+                options: [
+                    'A) F – V – V – F.',
+                    'B) F – F – V – V.',
+                    'C) V – F – F – V.',
+                    'D) V – V – V – V.',
+                    'E) V – F – V – V.'
+                ],
+                answer: 'E',
+                comment: 'A <b>assertiva I</b> é verdadeira. As pessoas com deficiência têm direito à igualdade de oportunidades, conforme o art. 4º do EPD:<br><br>Art. 4º Toda pessoa com deficiência tem direito à igualdade de oportunidades com as demais pessoas e não sofrerá nenhuma espécie de discriminação.<br><br>A <b>assertiva II</b> é falsa. Pessoa com deficiência é aquela que tem impedimento de longo prazo, não de curto prazo:<br><br>Art. 2º Considera-se pessoa com deficiência aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.<br><br>A <b>assertiva III</b> é verdadeira. O dever de comunicar à autoridade toda ameaça ou violação aos direitos da pessoa com deficiência está previsto no art. 7º:<br><br>Art. 7º É dever de todos comunicar à autoridade competente qualquer forma de ameaça ou de violação aos direitos da pessoa com deficiência.<br><br>A <b>assertiva IV</b> é verdadeira. O poder público tem o dever de garantir a dignidade da pessoa com deficiência, de acordo com o art. 10:<br><br>Art. 10. Compete ao poder público garantir a dignidade da pessoa com deficiência ao longo de toda a vida.<br><br>A sequência correta é V, F, V e V, assim, a <b>alternativa E</b> é correta e é o gabarito da questão.'
+            }
+        ];
+
+        // Variáveis de estado
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        // Elementos do DOM
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Função para renderizar uma pergunta
+        function renderQuestion(index) {
+            const questionData = questions[index];
+            quizArea.innerHTML = '';
+            
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+
+            const questionText = document.createElement('div');
+            questionText.className = 'question-text';
+            questionText.innerHTML = `${(index + 1).toString().padStart(2, '0')}. ${questionData.question}`;
+            
+            const optionsList = document.createElement('div');
+            optionsList.className = 'options-list';
+
+            questionData.options.forEach((optionText, optionIndex) => {
+                const optionButton = document.createElement('button');
+                optionButton.className = 'option-button';
+                optionButton.innerHTML = optionText;
+                optionButton.dataset.index = optionIndex;
+                optionButton.addEventListener('click', () => handleAnswer(optionText, questionData.answer));
+                optionsList.appendChild(optionButton);
+            });
+            
+            questionCard.appendChild(questionText);
+            questionCard.appendChild(optionsList);
+            
+            if (userAnswers[index] !== undefined) {
+                showResult(index);
+            }
+
+            quizArea.appendChild(questionCard);
+
+            updateNavigationButtons();
+            updateQuestionCounter();
+        }
+
+        // Função para lidar com a resposta do usuário
+        function handleAnswer(selectedOptionText, correctAnswer) {
+            const currentQuestion = questions[currentQuestionIndex];
+            const options = quizArea.querySelector('.options-list').children;
+            const hasAnsweredCurrentQuestion = userAnswers[currentQuestionIndex] !== undefined;
+
+            if (hasAnsweredCurrentQuestion) {
+                return;
+            }
+
+            userAnswers[currentQuestionIndex] = selectedOptionText;
+
+            if (selectedOptionText[0] === correctAnswer) {
+                score++;
+            }
+
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                if (option.innerHTML.includes(selectedOptionText)) {
+                    option.classList.add('selected');
+                }
+            }
+
+            showResult(currentQuestionIndex);
+        }
+
+        // Função para mostrar o resultado da pergunta atual
+        function showResult(index) {
+            const questionData = questions[index];
+            const hasAnsweredCurrentQuestion = userAnswers[index] !== undefined;
+
+            if (!hasAnsweredCurrentQuestion) {
+                return;
+            }
+
+            const options = quizArea.querySelector('.options-list').children;
+            const selectedAnswer = userAnswers[index];
+            
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                const optionText = option.innerHTML;
+
+                if (optionText.includes(questionData.answer)) {
+                    option.classList.add('correct');
+                }
+                if (optionText.includes(selectedAnswer) && !optionText.includes(questionData.answer)) {
+                    option.classList.add('incorrect');
+                }
+                option.disabled = true;
+            }
+
+            const resultSection = document.createElement('div');
+            resultSection.className = 'result-section';
+            resultSection.style.display = 'block';
+
+            const resultTitle = document.createElement('div');
+            resultTitle.className = 'result-title';
+            resultTitle.innerText = 'Comentários';
+
+            const resultContent = document.createElement('div');
+            resultContent.className = 'result-content';
+            resultContent.innerHTML = questionData.comment;
+            
+            resultSection.appendChild(resultTitle);
+            resultSection.appendChild(resultContent);
+            quizArea.querySelector('.question-card').appendChild(resultSection);
+
+            updateNavigationButtons();
+        }
+
+        // Função para atualizar os botões de navegação
+        function updateNavigationButtons() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+            
+            const hasAnsweredCurrentQuestion = userAnswers[currentQuestionIndex] !== undefined;
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        // Função para atualizar o contador de perguntas
+        function updateQuestionCounter() {
+            questionCounter.innerText = `Questão ${(currentQuestionIndex + 1).toString().padStart(2, '0')} de ${questions.length.toString().padStart(2, '0')}`;
+        }
+
+        // Função para mostrar o placar final
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        // Listeners para a navegação
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Inicia o quiz
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
