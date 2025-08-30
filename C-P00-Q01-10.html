@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Conhecimentos Específicos</title>
+    <!-- Inclui o Tailwind CSS para estilização moderna e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Adiciona a fonte Inter do Google Fonts para uma tipografia limpa -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+        <!-- Título do Quiz -->
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Quiz de Conhecimentos Específicos - Parte 00</h1>
+
+        <!-- Seção da Questão -->
+        <div id="quiz-container">
+            <h2 class="text-xl font-bold text-gray-800 mb-4" id="question-number"></h2>
+            <div id="question-text" class="text-lg text-gray-700 mb-6 leading-relaxed"></div>
+            
+            <!-- Opções de Resposta -->
+            <div id="options-container" class="space-y-4"></div>
+            
+            <!-- Botão de Ver Resposta -->
+            <button id="submit-btn" class="mt-6 w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                Ver Resposta
+            </button>
+        </div>
+
+        <!-- Seção de Resultado e Comentário (Inicialmente oculta) -->
+        <div id="result-container" class="mt-8 hidden">
+            <h2 id="result-status" class="text-2xl font-bold text-center mb-4"></h2>
+            <div id="result-text" class="bg-gray-100 p-6 rounded-lg"></div>
+            <button id="next-btn" class="mt-4 w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors duration-200">
+                Próxima Questão
+            </button>
+        </div>
+
+        <!-- Mensagem de fim do Quiz -->
+        <div id="end-message" class="mt-8 hidden">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">Quiz Concluído!</h2>
+            <p id="final-score" class="text-xl text-center text-gray-700 mt-4"></p>
+        </div>
+    </div>
+
+    <script>
+        // Dados do quiz com 10 questões extraídas do arquivo
+        const quizData = [
+            {
+                questionText: `
+                    (Banca FCC - Ano: 2022) De acordo com os conceitos predicados pela Teoria do Reforço, de Skinner, o denominado reforço negativo corresponde
+                `,
+                options: {
+                    A: 'à valência adquirida por determinados incentivos em face da percepção emocionalmente desfavorável do agente ou do grupo.',
+                    B: 'a algum tipo de punição aplicada quando há um comportamento indesejado, buscando evitar sua repetição e coibir outros agentes.',
+                    C: 'a estímulos externos que reforçam o caráter negativo de algum comportamento individual, como o isolamento do agente pelo grupo.',
+                    D: 'à remoção de algum estímulo aversivo capaz de fortalecer ou induzir algum tipo de reação ou comportamento desejado.',
+                    E: 'à repetição sistemática pela alta cúpula da organização de standards de comportamentos e condutas eticamente reprováveis.'
+                },
+                correctAnswer: 'D',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentários</h3>
+                    <p class="text-gray-700 mb-2">A alternativa **D** está correta. O reforço negativo é a remoção de um estímulo aversivo para aumentar a frequência de um comportamento desejado.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **A** está incorreta. Skinner não trabalha com emoções individuais ou em grupo, mas sim com o comportamento.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **B** está incorreta. Punição não é reforço negativo; a punição diminui a frequência de um comportamento, enquanto o reforço negativo aumenta.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **C** está incorreta. Esta alternativa descreve o reforço de um comportamento indesejado, o que não é o caso do reforço negativo.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **E** está incorreta. A repetição não caracteriza o reforço negativo.</p>
+                `
+            },
+            {
+                questionText: `
+                    (Ano: 2023 Banca: FCC) De acordo com os conceitos apresentados por Skinner, um dos importantes estudiosos do fenômeno da motivação, conforme sua Teoria do Reforço,
+                `,
+                options: {
+                    A: 'o ser humano é naturalmente avesso ao trabalho e somente um sistema de reforço negativo a tal estado de inércia é capaz de condicioná-lo a realização das tarefas.',
+                    B: 'o atendimento das necessidades básicas do ser humano reforça positivamente sua motivação para, através do reforço negativo, neutralizar outras aspirações mais elevadas.',
+                    C: 'a combinação entre reforço positivo, representado por recompensas financeiras e sociais, e reforço negativo, consistente em punições e sanções, induz efetivamente a motivação.',
+                    D: 'apenas o reforço positivo, representando por um sistema de recompensas e premiações, é capaz de condicionar o comportamento humano.',
+                    E: 'o reforço negativo é capaz de fortalecer uma reação ou comportamento desejado ao remover algum tipo de estímulo aversivo, não sendo, portanto, punitivo.'
+                },
+                correctAnswer: 'E',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentários</h3>
+                    <p class="text-gray-700 mb-2">A alternativa **E** está correta, pois é a definição exata de reforço negativo na teoria de Skinner: a remoção de um estímulo aversivo fortalece um comportamento desejado.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **A** está incorreta. Skinner considera que o ser humano é motivado ao trabalho.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **B** está incorreta. A descrição da alternativa não possui coerência com a teoria.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **C** está incorreta. A punição não é um reforço.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **D** está incorreta. O reforço negativo também condiciona o comportamento desejado.</p>
+                `
+            },
+            {
+                questionText: `
+                    (Ano: 2022 Banca: FCC) Os trabalhos de Piaget apontam para a valorização dos conhecimentos prévios, uma vez que ele era um crítico do pensamento apriorista e defendia que o sujeito constrói o conhecimento pela interação com o objeto, considerando as experiências já vivenciadas. A partir do modo de construção do conhecimento apresentado no trecho, é correto afirmar que a aprendizagem é favorecida pela
+                `,
+                options: {
+                    A: 'visualização.',
+                    B: 'repetição.',
+                    C: 'memorização.',
+                    D: 'contextualização.',
+                    E: 'explicação.'
+                },
+                correctAnswer: 'D',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentários</h3>
+                    <p class="text-gray-700 mb-2">A alternativa **D** está correta. A contextualização ajuda a ligar os conhecimentos prévios com os novos, auxiliando na construção dos esquemas de assimilação e acomodação, fundamentais na teoria de Piaget.</p>
+                    <p class="text-gray-700 mb-2">As alternativas **A**, **B**, **C** e **E** estão incorretas, pois os termos “visualização”, “repetição”, “memorização” e “explicação” são mais associados a teorias comportamentais ou empiristas, e não à abordagem construtivista de Piaget.</p>
+                `
+            },
+            {
+                questionText: `
+                    (Ano: 2022 Banca: FCC) As mudanças no desenvolvimento humano podem ser de dois tipos: as quantitativas, ou seja, aquelas que implicam, por exemplo, aumento de peso ou de vocabulário, e as qualitativas, que indicam uma mudança na organização da estrutura cognitiva. Para Piaget, um bom exemplo de mudança qualitativa é quando, aos 24 meses de idade, a criança
+                `,
+                options: {
+                    A: 'desconfia de estranhos.',
+                    B: 'conquista a fala.',
+                    C: 'expressa humores intensos e negativos.',
+                    D: 'agita-se e enrijece o corpo quando infeliz.',
+                    E: 'age por meio da lógica egocêntrica messiânica.'
+                },
+                correctAnswer: 'B',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentários</h3>
+                    <p class="text-gray-700 mb-2">A alternativa **B** está correta. A conquista da fala, por volta dos 24 meses, é um marco do ingresso no período pré-operatório, que é uma mudança qualitativa na organização cognitiva, segundo Piaget.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **A** está incorreta, pois não é uma característica do período pré-operatório.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **C** está incorreta, pois a expressão de humores é comum em todas as etapas da infância.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **D** está incorreta, pois essa relação entre emoção e ato motor é da teoria de Wallon, não de Piaget.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **E** está incorreta. O termo "messiânica" torna a alternativa inválida, além de que a criança ainda está no início do processo de descentração.</p>
+                `
+            },
+            {
+                questionText: `
+                    (Ano: 2022 Banca: FCC) Segundo Vygotsky, o desenvolvimento dos alunos ocorre, em seus vários aspectos (como o afetivo e o cognitivo, por exemplo), sobretudo em razão
+                `,
+                options: {
+                    A: 'das interações sociais das crianças com alguém, adultos ou crianças, mais experiente da cultura.',
+                    B: 'da exposição a aulas bem estruturadas, nas quais as ideias centrais são bem ilustradas.',
+                    C: 'da ação da escola, porque as famílias são muito desiguais em termos de escolaridade formal.',
+                    D: 'da família, que assiste e dá apoio à criança para se desenvolver integralmente.',
+                    E: 'do enfrentamento dos desajustes emocionais encontrados em cada estádio de desenvolvimento.'
+                },
+                correctAnswer: 'A',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentários</h3>
+                    <p class="text-gray-700 mb-2">A alternativa **A** está correta. Na teoria de Vygotsky, as interações sociais são a base do desenvolvimento, pois promovem a mediação entre o sujeito e o conhecimento.</p>
+                    <p class="text-gray-700 mb-2">As alternativas **B**, **C**, **D** e **E** estão incorretas, pois não representam o foco principal da teoria de Vygotsky, que se concentra na Psicologia Histórico-Cultural e na importância das interações sociais e da mediação.</p>
+                `
+            },
+            {
+                questionText: `
+                    (Ano: 2022 Banca: FCC) Segundo Vygotsky, duas crianças com a mesma idade mental podem alcançar, em medição posterior, resultados diferentes, quando contam com a ajuda de alguém mais experiente. Isso indica que
+                `,
+                options: {
+                    A: 'o resultado obtido não decorre da ajuda recebida e, sim, de aspectos biológicos (orgânicos) do Nível de Desenvolvimento Próximo (NDP) dos alunos.',
+                    B: 'a primeira avaliação foi incorreta, em razão de ter se centrado no desempenho futuro das crianças, de modo que, agora, elas poderão receber ajuda mais adequadas.',
+                    C: 'o objetivo do teste é identificar a idade mental dos sujeitos e não o quanto as crianças se beneficiariam da ajuda.',
+                    D: 'o Nível de Desenvolvimento Real (NDR) das crianças cobre áreas comparáveis, já que a Zona de Desenvolvimento Próximo (ZDP) impulsionou um maior desenvolvimento para apenas uma criança, em função da ajuda recebida.',
+                    E: 'a idade mental é situacional, mas converte-se, posteriormente, em representacional.'
+                },
+                correctAnswer: 'D',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentários</h3>
+                    <p class="text-gray-700 mb-2">A alternativa **D** está correta. A situação descrita ilustra a Zona de Desenvolvimento Proximal (ZDP) de Vygotsky. A ZDP é a diferença entre o que a criança pode fazer sozinha (Nível de Desenvolvimento Real) e o que ela pode fazer com a ajuda de um adulto ou par mais experiente.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **A** está incorreta, pois o NDP (ZDP) não se relaciona com aspectos biológicos, mas com a interação social.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **B** está incorreta, pois Vygotsky foca no desenvolvimento futuro.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **C** está incorreta, pois a preocupação de Vygotsky não é com a idade mental, mas com a oportunidade de aprendizagem e desenvolvimento.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **E** está incorreta, pois Vygotsky não se preocupa em analisar a idade mental.</p>
+                `
+            },
+            {
+                questionText: `
+                    (Ano: 2023 Banca: FCC) As representações sociais, da teoria de Serge Moscovici,
+                `,
+                options: {
+                    A: 'são formadas pelo indivíduo ao criar imagens representativas da sua realidade por meio do processo de ancoragem.',
+                    B: 'são formas de aprofundamento do conhecimento que um grupo social possui sobre sua realidade.',
+                    C: 'surgem da incompreensão do conhecimento científico por parte das pessoas e grupos sociais com menor escolaridade.',
+                    D: 'indicam a compreensão cognitiva e intelectual de cada indivíduo sobre determinado tema, independente do contexto sociocultural em que se encontra.',
+                    E: 'são teorias do senso comum, conhecimento prático compartilhado de caráter simbólico, autônomo e criativo.'
+                },
+                correctAnswer: 'E',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentários</h3>
+                    <p class="text-gray-700 mb-2">A alternativa **E** está correta. A teoria de Moscovici define as representações sociais como um corpo de saberes práticos, oriundos do senso comum, que são compartilhados por um grupo social.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **A** está incorreta, pois as representações são teóricas e simbólicas, não apenas imagens.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **B** está incorreta, pois o conhecimento é superficial, vindo do senso comum.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **C** está incorreta, pois os saberes não são científicos, são do cotidiano.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **D** está incorreta, pois as representações sociais estão intrinsecamente ligadas ao contexto sociocultural.</p>
+                `
+            },
+            {
+                questionText: `
+                    (Ano: 2023 Banca: FGV) Segundo os autores, “nesse processo de permanente reajustamento, o sujeito aciona os mecanismos” que Piaget denominou de assimilação e acomodação. Sobre os referidos mecanismos, assinale a afirmativa incorreta.
+                `,
+                options: {
+                    A: 'Na assimilação, o sujeito entra em contato com a realidade externa, trazendo para as estruturas mentais que já possui os dados/informações sobre aquilo que está desejando conhecer.',
+                    B: 'Na teoria piagetiana, os mecanismos de assimilação e acomodação são independentes.',
+                    C: 'O processo de assimilação leva a ação e o pensamento a se acomodarem a esses mecanismos, ou seja, o sujeito é impelido a transformar suas estruturas cognitivas prévias.',
+                    D: 'Ao equilíbrio entre assimilações e acomodações Piaget denominou adaptação.',
+                    E: 'O mecanismo de acomodação atua quando a pessoa precisa modificar suas estruturas de pensamento.'
+                },
+                correctAnswer: 'B',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentários</h3>
+                    <p class="text-gray-700 mb-2">A alternativa **B** está incorreta. Os processos de assimilação e acomodação **não** são independentes; eles são interdependentes e funcionam em conjunto para a construção do conhecimento, formando um ciclo contínuo.</p>
+                    <p class="text-gray-700 mb-2">As alternativas **A**, **C**, **D** e **E** estão corretas, pois descrevem corretamente os conceitos de assimilação, acomodação e adaptação na teoria de Piaget.</p>
+                `
+            },
+            {
+                questionText: `
+                    (Ano: 2024 Banca: FGV) Para Piaget, o aprendizado é construído pela criança durante sua relação com objetos e pessoas. Assim, o desenvolvimento cognitivo começa desde o nascimento e se divide em 4 estágios principais. A esse respeito, analise as afirmativas a seguir.
+                    <ul class="list-none text-gray-700 mt-4 space-y-1">
+                        <li>I. No estágio pré-operatório, o bebê adquire progressivamente uma consciência sobre o mundo externo e sobre como os outros percebem este mundo.</li>
+                        <li>II. No estágio sensório-motor, é comum a criança falar tudo o que se passa em sua mente, sem considerar o que as pessoas dizem.</li>
+                        <li>III. No estágio operatório-formal, as crianças aprimoram suas habilidades de formular hipóteses para explicar e resolver problemas.</li>
+                        <li>IV. No estágio operatório-concreto, o egocentrismo diminui e a criança passa a ter maior capacidade de se colocar no lugar do outro e entender conceitos morais de certo e errado.</li>
+                    </ul>
+                    <br>
+                    Está correto o que se afirma em
+                `,
+                options: {
+                    A: 'I e II, apenas.',
+                    B: 'III e IV, apenas.',
+                    C: 'II e IV, apenas.',
+                    D: 'I e III, apenas.',
+                    E: 'I, II, III e IV.'
+                },
+                correctAnswer: 'B',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentários</h3>
+                    <p class="text-gray-700 mb-2">A alternativa **B** está correta, pois as afirmativas III e IV estão corretas na teoria de Piaget.</p>
+                    <p class="text-gray-700 mb-2">A afirmativa **I** está incorreta, pois o bebê não tem consciência de como os outros percebem o mundo. Isso se desenvolve em estágios posteriores.</p>
+                    <p class="text-gray-700 mb-2">A afirmativa **II** está incorreta, pois a fala e o mundo simbólico são características do estágio pré-operatório, não do sensório-motor.</p>
+                    <p class="text-gray-700 mb-2">A afirmativa **III** está correta, pois o estágio operatório-formal é marcado pelo pensamento abstrato e a formulação de hipóteses.</p>
+                    <p class="text-gray-700 mb-2">A afirmativa **IV** está correta, pois no estágio operatório-concreto o egocentrismo diminui e a reversibilidade do pensamento está mais consolidada.</p>
+                `
+            },
+            {
+                questionText: `
+                    (Ano: 2023 Banca: FGV) De acordo com a teoria de Jean Piaget, há algumas noções básicas para a criança construir o conceito de número. A reversibilidade é uma dessas noções e refere-se à habilidade mental de realizar ações opostas simultaneamente, isto é, separar o todo das partes e reuni-las novamente no todo. Assinale a opção que indica o estágio de desenvolvimento cognitivo em que se inicia a noção de reversibilidade no pensamento infantil.
+                `,
+                options: {
+                    A: 'Sensório-motor.',
+                    B: 'Pré-operatório.',
+                    C: 'Operatório concreto.',
+                    D: 'Operatório formal.'
+                },
+                correctAnswer: 'C',
+                commentary: `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comentários</h3>
+                    <p class="text-gray-700 mb-2">A alternativa **C** está correta. A noção de reversibilidade se inicia no estágio operatório concreto, que marca o nascimento da lógica e a capacidade de realizar operações mentais reversíveis.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **A** está incorreta, pois neste estágio a inteligência está ligada ao ato motor.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **B** está incorreta, pois o pensamento reverso ainda não está em formação no estágio pré-operatório.</p>
+                    <p class="text-gray-700 mb-2">A alternativa **D** está incorreta, pois o estágio operatório formal é a ampliação do pensamento reverso, com a capacidade de abstração e formulação de hipóteses.</p>
+                `
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let selectedOption = null;
+        let correctAnswers = 0;
+        let incorrectAnswers = 0;
+
+        // Referências aos elementos DOM
+        const questionNumberEl = document.getElementById('question-number');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainerEl = document.getElementById('options-container');
+        const submitBtnEl = document.getElementById('submit-btn');
+        const resultContainerEl = document.getElementById('result-container');
+        const resultStatusEl = document.getElementById('result-status');
+        const resultTextEl = document.getElementById('result-text');
+        const nextBtnEl = document.getElementById('next-btn');
+        const endMessageEl = document.getElementById('end-message');
+        const finalScoreEl = document.getElementById('final-score');
+
+        // Função para carregar a questão atual
+        function loadQuestion() {
+            if (currentQuestionIndex >= quizData.length) {
+                showFinalScore();
+                return;
+            }
+
+            const currentQuestion = quizData[currentQuestionIndex];
+            
+            // Atualiza a interface do usuário
+            questionNumberEl.textContent = `Questão ${currentQuestionIndex + 1} de ${quizData.length}`;
+            questionTextEl.innerHTML = currentQuestion.questionText;
+            optionsContainerEl.innerHTML = '';
+            resultContainerEl.classList.add('hidden');
+            submitBtnEl.classList.remove('hidden');
+            
+            selectedOption = null;
+
+            // Cria os botões de opção
+            for (const option in currentQuestion.options) {
+                const button = document.createElement('button');
+                button.classList.add('w-full', 'p-4', 'text-left', 'bg-gray-100', 'hover:bg-gray-200', 'rounded-lg', 'font-medium', 'transition-colors', 'duration-200');
+                button.textContent = `${option}) ${currentQuestion.options[option]}`;
+                button.onclick = () => {
+                    // Remove a seleção de todas as opções
+                    document.querySelectorAll('#options-container button').forEach(btn => {
+                        btn.classList.remove('border-2', 'border-blue-600');
+                    });
+                    // Adiciona a seleção à opção clicada
+                    button.classList.add('border-2', 'border-blue-600');
+                    selectedOption = option;
+                };
+                optionsContainerEl.appendChild(button);
+            }
+        }
+
+        // Função para verificar a resposta
+        submitBtnEl.onclick = () => {
+            if (!selectedOption) {
+                alert('Por favor, selecione uma opção.');
+                return;
+            }
+
+            const currentQuestion = quizData[currentQuestionIndex];
+            const isCorrect = selectedOption === currentQuestion.correctAnswer;
+
+            // Oculta o quiz e mostra o resultado
+            submitBtnEl.classList.add('hidden');
+            resultContainerEl.classList.remove('hidden');
+            
+            if (isCorrect) {
+                correctAnswers++;
+                resultStatusEl.textContent = 'Parabéns, você acertou!';
+                resultStatusEl.classList.add('text-green-600');
+                resultStatusEl.classList.remove('text-red-600');
+            } else {
+                incorrectAnswers++;
+                resultStatusEl.textContent = 'Que pena, você errou.';
+                resultStatusEl.classList.add('text-red-600');
+                resultStatusEl.classList.remove('text-green-600');
+            }
+            
+            // Exibe o comentário
+            resultTextEl.innerHTML = currentQuestion.commentary;
+        };
+
+        // Função para ir para a próxima questão
+        nextBtnEl.onclick = () => {
+            currentQuestionIndex++;
+            loadQuestion();
+        };
+
+        // Função para mostrar a pontuação final
+        function showFinalScore() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('result-container').classList.add('hidden');
+            endMessageEl.classList.remove('hidden');
+            finalScoreEl.textContent = `Você acertou ${correctAnswers} de ${quizData.length} questões.`;
+        }
+
+        // Inicializa o quiz
+        loadQuestion();
+    </script>
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Conhecimentos Específicos - Parte 00</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Psicologia Educacional</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 1 de 10</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        // Array de objetos com as perguntas, opções, respostas corretas e comentários
+        const questions = [
+            {
+                question: '11. Segundo a teoria de Jean Piaget, comumente chamada de epistemologia genética ou construtivismo, o desenvolvimento humano está dividido em estágios. Em sendo assim, por volta dos dois aos sete anos, a criança experimenta o mundo por meio de representações mentais, desenvolvendo a capacidade de simbolizar objeto ou ação ausente. Nesta fase, não há o princípio da reversibilidade como recurso de pensamento e a fala da criança é de caráter egocêntrico. Tal estágio denomina-se',
+                options: [
+                    'A) sensório motor.',
+                    'B) pré-operatório.',
+                    'C) operatório formal.',
+                    'D) operatório concreto.',
+                    'E) narcisismo secundário.'
+                ],
+                answer: 'B',
+                comment: 'O enunciado pede o estágio de acordo com as características relatadas.<br><br>A alternativa A está incorreta. A criança possui a inteligência construída com a motricidade. A fala é pouco desenvolvida.<br><br>A alternativa B está correta. É a fase da fantasia e do animismo. O pensamento lógico da criança ainda está ligado ao pensamento animista, isto é, dar características humanas aos objetos inanimados. Assim, a reversibilidade do pensamento é pouco presente, pois é necessário a compreensão de esquemas lógicos concretos.<br><br>A alternativa C está incorreta. O estágio formal é a ampliação da reversibilidade do pensamento, uma vez que já se trabalha com hipóteses e deduções. A fala egocêntrica não é presente.<br><br>A alternativa D está incorreta. É o momento certo da reversibilidade do pensamento, pois a lógica concreta está em pleno desenvolvimento.<br><br>A alternativa E está incorreta. O termo “narcisismo” é da psicanálise e não da teoria de Jean Piaget.'
+            },
+            {
+                question: '12. Segundo as diversas teorias da psicologia da aprendizagem é correto afirmar que',
+                options: [
+                    'A) a partir de sua teoria cognitiva da aprendizagem, John Dewey propõe um conjunto de premissas e diretrizes para a aplicação da TCA no processo de ensino-aprendizagem, com ênfase na aprendizagem por descoberta (Learning by Discovery).',
+                    'B) no construtivismo de Jean Piaget, o conhecimento humano é construído a partir da interação sujeito e meio (físico e social) externo. Assim, não sendo inato, nem apenas fruto de estimulações do ambiente, o desenvolvimento intelectual afetivo passa por etapas de organização.',
+                    'C) segundo Malcolm Knowles, sua teoria da andragogia baseia-se em cinco princípios: disponibilidade de conhecimentos prévios, motivação para a aprendizagem (intrínseca e extrínseca), dependência contextual, desenvolvimento espontâneo e reforço positivo.',
+                    'D) na Psicologia histórico-cultural de Vygotsky, o que leva um indivíduo a operar sobre o meio, o que o motiva a aprender é um elemento externo. Sendo assim, aprendizagem é função de elementos externos, ou seja, da maneira como os estímulos são dispostos.',
+                    'E) na linha da Educação Humanista, Carl Rogers coloca o professor na posição de um facilitador que deve valorizar a individualidade do aluno, promovendo, sempre que possível, materiais, atividades e avaliações individualizadas.'
+                ],
+                answer: 'B',
+                comment: 'A alternativa A está incorreta. Dewey não colocou uma teoria cognitiva de aprendizagem. A análise do autor é pedagógica e da escola.<br><br>A alternativa B está correta. O construtivismo de Piaget é na interação entre sujeito e meio. A inteligência é construída.<br><br>A alternativa C está incorreta. A Andragogia de Malcolm Knowles não é comportamental.<br>Dessa forma, ela não trabalha com “reforço positivo”.<br><br>A alternativa D está incorreta. Pelo contrário, Vygotsky compreende que a aprendizagem ocorre na interação do sujeito e o meio. A ênfase está na relação sujeito e objeto. Dessa forma, não é possível afirmar que a aprendizagem é devida aos fatores externos.<br><br>A alternativa E está incorreta. Na teoria humanista, o professor ajuda o estudante no seu crescimento pessoal: emoções, intelecto, relações sociais. É a busca da autonomia e da autenticidade como ser humano. O foco não é a aprendizagem acadêmica em si, mas a formação do ser humano como um todo.'
+            },
+            {
+                question: '13. Vygotsky, um autor que merece destaque pela construção de uma nova compreensão dos processos de aprendizagem, trouxe o conceito de Zona de Desenvolvimento Proximal (ZDP), um conceito central na Psicologia sociocultural ou sócio-histórica.<br><br>A ZDP é fundamentalmente descrita como',
+                options: [
+                    'A) a distância entre o nível de desenvolvimento real, determinado pela capacidade de resolver tarefas autonomamente, e o nível de desenvolvimento potencial, determinado por desempenhos possíveis a partir da mediação de outros.',
+                    'B) a distância entre o nível de desenvolvimento potencial, determinado pela capacidade de resolver tarefas mediadas, e o nível de desenvolvimento distal, determinado por desempenhos atingidos pelo treino.',
+                    'C) a distância entre a capacidade de resolver problemas e o desempenho apresentado em situações concretas.',
+                    'D) a zona intermediária entre capacidade e desempenho, em processos de solução de problemas.',
+                    'E) a zona de aproximação entre desempenho potencial e desempenho consumado, em processos de solução de problemas.'
+                ],
+                answer: 'A',
+                comment: 'A alternativa A está correta. A descrição da alternativa coloca os dois conceitos: nível de desenvolvimento real e nível de desenvolvimento potencial. Não se faz menção ao conceito de Zona de Desenvolvimento Proximal (ZDP), pois se coloca apenas o contexto em que a ZDP aparece sem relação com os outros conceitos. Não se responde a descrição da ZDP.<br><br>A alternativa B está incorreta. O termo utilizado “nível de desenvolvimento distal” não existe na teoria de Vygotsky.<br><br>A alternativa C está incorreta. Esta é uma definição equivocada. Vygotsky não foca em resolução de problemas.<br><br>A alternativa D está incorreta. Esta é uma definição equivocada. Vygotsky não foca em resolução de problemas.<br><br>A alternativa E está incorreta. Esta é uma definição equivocada. Vygotsky não foca em resolução de problemas.'
+            },
+            {
+                question: '14. Com relação ao processo de desenvolvimento tal como pensado por Vygotsky, é correto afirmar que:',
+                options: [
+                    'A) privilegia a maturação biológica e a elaboração espontânea de conceitos pela criança;',
+                    'B) pensa que o desenvolvimento segue uma sequência fixa e universal de estágios;',
+                    'C) acredita que construção do conhecimento proceda do individual para o social;',
+                    'D) defende que a aprendizagem subordina-se ao desenvolvimento e tem pouco impacto sobre ele;',
+                    'E) postula que pensamento e linguagem são processos interdependentes, desde o início da vida.'
+                ],
+                answer: 'E',
+                comment: 'A alternativa A está incorreta. Pelo contrário, Vygotsky acredita no desenvolvimento social e cultural. A maturação biológica faz parte, mas não deve ser tratada de forma privilegiada.<br><br>A alternativa B está incorreta. Pelo contrário, o desenvolvimento para Vygotsky não é fixo e possui diferenças de acordo com a cultura.<br><br>A alternativa C está incorreta. Pelo contrário, a mente é formada pelo social para o individual. Vygotsky até escreveu um livro com este título “A formação social da mente”.<br><br>A alternativa D está incorreta. Pelo contrário, é o desenvolvimento que é de certa forma “subordinado” ao processo de aprendizagem, pois o aprender “puxa” o desenvolvimento da criança.<br><br>A alternativa E está correta. O pensamento e a linguagem são faces da mesma moeda. O pensamento é verbalizado. A fala possui um pensamento.'
+            },
+            {
+                question: '15. “A experiência pedagógica nos ensina que o ensino direto de conceitos é impossível e, na verdade pedagogicamente infrutífero. O professor que tenta seguir esse caminho geralmente não conseguirá mais que uma assimilação irrefletida de palavras, um simples verbalismo que substitui o domínio dos conhecimentos vivos. Em essência, este procedimento de ensino dos conceitos é o defeito fundamental do método puramente verbal de ensino.”<br><br>Adaptado de VYGOTSKY, L. Obras Escogidas: tomo II. Madri: Visor, 1993. Considerando o que se afirma no trecho acima, pode-se afirmar que os professores devem',
+                options: [
+                    'A) adaptar seu vocabulário ao tipo de linguagem que o aluno seja capaz de entender.',
+                    'B) evitar o pensamento conceitual devido à complexidade que representa transmiti-lo corretamente.',
+                    'C) desenvolver atividades nas quais os alunos aprendam na prática o uso dos conceitos.',
+                    'D) aprofundar o conhecimento a respeito dos conceitos de modo a serem capazes de melhor defini-los.',
+                    'E) reconhecer a necessidade de enriquecer o método expositivo com recursos visuais.'
+                ],
+                answer: 'C',
+                comment: 'O enunciado da questão pede uma postura crítica em relação ao verbalismo em sala de aula.<br><br>A alternativa A está incorreta. O vocabulário pode mudar, mas continuará sendo uma aula expositiva.<br><br>A alternativa B está incorreta. O termo utilizado é incorreto: transmissão. Não é transmitir o conhecimento elaborar ou reelaborar o conhecimento. O saber é construído por cada pessoa.<br><br>A alternativa C está correta. A aplicação prática favorece ao processo de consolidação dos conceitos, pois, através da realidade, as teorias são colocadas em uso e fixadas na mente do educando.<br><br>A alternativa D está incorreta. A descrição desta alternativa não possui relação com o enunciado.<br><br>A alternativa E está incorreta. Pelo contrário, o enunciado pede uma posição contrária ao método expositivo.'
+            },
+            {
+                question: '16. A teoria da aprendizagem significativa de David Ausubel tem como base a ideia de que a condição fundamental para aprender, diferentemente de apenas memorizar, é que o sujeito já possua subsunçores que possam dar sentido aos novos conhecimentos.<br><br>Um aspecto conceitual dos subsunçores é:',
+                options: [
+                    'A) serem conhecidos como ideias-âncora, dado que, uma vez estabelecidos, tornam-se fixos;',
+                    'B) entrarem em relações dinâmicas de hierarquia uns com os outros e com os conhecimentos adquiridos;',
+                    'C) tornarem-se ponto de apoio potencial para menos conhecimentos, na medida em que se complexificam;',
+                    'D) surgirem como um conjunto de ideias inatas universalmente presentes nas estruturas subjetivas;',
+                    'E) chegarem ao status de organizadores prévios, na medida em que ganham em clareza e abrangência.'
+                ],
+                answer: 'B',
+                comment: 'A alternativa A está incorreta. Quase tudo certo. O uso da expressão “tornam-se fixo” inviabilizou a alternativa, pois os conceitos subjunçores não são fixos. Eles permanecem até a chegada de um novo conceito a ser ancorado, por isso os subjunçores são flexíveis.<br><br>A alternativa B está correta. A hierarquia é dinâmica e possui relação com os conhecimentos prévios. A ancoragem de saberes novos é facilitada com saberes prévios.<br><br>A alternativa C está incorreta. Pelo contrário, os conceitos subjunções fornecem mais conhecimento, pois são pontos de apoio para novas aprendizagens.<br><br>A alternativa D está incorreta. Ausubel é contrário ao inatismo.<br><br>A alternativa E está incorreta. Não são organizadores prévios. O termo melhor utilizado é saber. Não é apenas um aspecto de organização.'
+            },
+            {
+                question: '17. Erik Erikson é autor de conhecida contribuição teórica sobre o desenvolvimento psicossocial na qual concebe os estágios de desenvolvimento e as crises que caracterizam as diferentes fases da vida, do nascimento à velhice. Jonas, 80 anos, aposentou-se como professor, carreira que lhe trouxe muitas realizações. Ele vive com sua esposa Elisa, gosta de reunir os filhos e netos e dedica-se à pintura.<br><br>De acordo com a teoria de Erikson, podemos identificar em Jonas um sentimento de',
+                options: [
+                    'A) etarismo.',
+                    'B) capacitismo.',
+                    'C) integridade.',
+                    'D) generatividade.',
+                    'E) finitude.'
+                ],
+                answer: 'C',
+                comment: 'A alternativa A está incorreta. O processo de crise e o desenvolvimento de idosos não são denominados etarismo, mas é relacionada a uma crise mais abrangente de integridade nas relações pessoais. A permanência dos vínculos geracionais familiares.<br><br>A alternativa B está incorreta. Este é um termo utilizado para designar pessoas com preconceito em relação aos idosos deficientes.<br><br>A alternativa C está correta. É uma crise mais abrangente de integridade nas relações pessoais. A permanência dos vínculos geracionais familiares.<br><br>A alternativa D está incorreta. Este termo não é utilizado na crise e desenvolvimento de pessoas idosas.<br><br>A alternativa E está incorreta. Este termo está sendo usado de modo equivocado. É a união dos laços familiares: integridade.'
+            },
+            {
+                question: '18. Para Vygotsky, o processo mental superior compreende:',
+                options: [
+                    'A) II, III e IV, apenas.',
+                    'B) I, II e III, apenas.',
+                    'C) II, III e V, apenas.',
+                    'D) I, II e IV, apenas.',
+                    'E) III, IV e V, apenas.'
+                ],
+                answer: 'E',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário.<br><br>Afirmativa I está incorreta. O egocentrismo é um conceito da Teoria de Jean Piaget.<br><br>Afirmativa II está incorreta. O conceito de equilibração do autor Jean Piaget.<br><br>Afirmativa III está correta. Ou podem ser chamadas de funções psicológicas superiores. A interação social favorece ao desenvolvimento destas funções, pois o próprio Vygotsky escreveu um livro com o título “A formação social de mente”.<br><br>Afirmativa IV está correta. A abstração é uma função psicológica superior. Está dentro da teoria de Vygotsky.<br><br>Afirmativa V está correta. O planejamento é uma ação humana. É uma função psicológica superior.<br><br>Alternativa correta letra E.'
+            },
+            {
+                question: '19. À luz da perspectiva sociointeracionista de Vygotsky e da teoria da complexidade de Edgar Morin, julgue os itens a seguir.<br><br>I - Entende-se por funções psicológicas superiores fenômenos psíquicos especificamente humanos que referenciam processos de domínio de meios externos de desenvolvimento cultural, como a linguagem, a escrita, o cálculo e o desenho, bem como funções especiais não limitadas com exatidão, como a atenção voluntária, a memória lógica e a formação de conceitos. Para Vygotsky, a aprendizagem é um requisito necessário para o desenvolvimento dessas funções.<br><br>II - Vygotsky defende a mesma interação de Piaget, porém situada em um contexto sócio-histórico-cultural. Ele acredita que, assim como o homem transforma a natureza, este também sofre os efeitos de sua interação, sendo que esses processos são intencionais, e a partir dessas trocas a aprendizagem é construída.<br><br>III - Para Morin, a complexidade é um fenômeno quantitativo devido à imensa quantidade de interações e interferências entre um número muito grande de unidades. Assim, ela abrange incertezas, indeterminações e fenômenos aleatórios, isto é, relaciona-se com a ideia de acaso.<br><br>Assinale a opção correta.',
+                options: [
+                    'A) Apenas o item I está certo.',
+                    'B) Apenas os itens I e II estão certos.',
+                    'C) Apenas os itens I e III estão certos.',
+                    'D) Apenas os itens II e III estão certos.',
+                    'E) Todos os itens estão certos.'
+                ],
+                answer: 'E',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário.<br><br>Afirmativa I está correta. As funções psicológicas superiores são aspectos voluntários e complexos do desenvolvimento humano. A mente como um todo trabalha para desempenhar estas funções. Por exemplo, é o caso da leitura.<br><br>Afirmativa II está correta. Piaget foca na interação entre pares. Vygotsky foca na interação social.<br><br>Afirmativa III está correta. Edgar Morin argumenta sobre as incertezas do conhecimento, pois os fenômenos são interdisciplinares e complexos.<br><br>Alternativa correta letra E.'
+            },
+            {
+                question: '20. O desenvolvimento humano são as transformações que o ser humano vivencia ao longo de toda a sua vida. Este desenvolvimento pode ser de diferentes naturezas, podendo ser físico, pessoal, social e cognitivo. As teorias do desenvolvimento, ainda que expressem diferentes aspectos, surgem a partir da ideia de que os desenvolvimentos intelectuais, físico-motor, social e afetivo-emocional não se separam. Os estudos sobre o desenvolvimento do homem voltam seus esforços em uma compreensão dele em diferentes visões. Os estudos de Piaget e Vygotsky foram um grande marco para a Psicologia Educacional e, ainda, são conhecimentos muito atuais por trazerem uma excelente maneira de concepção do desenvolvimento, aprendizagem e da experiência consciente humana.<br><br>Considere as pesquisas de Piaget e Vygotsky e complete as afirmativas a seguir.<br><br>I. “Para ________________, a aprendizagem está condicionada a desenvolvimento cognitivo e afetivo e seus estágios.”<br><br>II. “Para ________________, o professor é mediador do ensino aprendizagem. A ação docente deve acontecer dentro da Zona Desenvolvimento Proximal (ZDP).”<br><br>III. “Para ________________, o desenvolvimento da estrutura cognitiva humana é um processo que se dá por apropriação da experiência histórica e cultural.”<br><br>IV. “Para ________________, ao professor cabe pensar e desenvolver situações de aprendizagem que sejam, ao mesmo tempo, compatíveis com o estágio de desenvolvimento cognitivo no qual o aluno se encontra, e represente também, um desafio a eles.”<br><br>A sequência que completa corretamente é',
+                options: [
+                    'A) I. Vygotsky II. Piaget III. Piaget IV. Piaget',
+                    'B) I. Piaget II. Vygotsky III. Piaget IV. Piaget',
+                    'C) I. Piaget II. Vygotsky III. Vygotsky IV. Piaget',
+                    'D) I. Vygotsky II. Vygotsky III. Piaget IV. Vygotsky'
+                ],
+                answer: 'C',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário.<br><br>Afirmativa I é Piaget. Para Piaget a aprendizagem está atrelada ao desenvolvimento, pois o autor afirma que é preciso primeiro o desenvolvimento e depois a aprendizagem.<br><br>Afirmativa II é Vygotsky. A ZDP é a distância entre o nível de desenvolvimento real e o nível de desenvolvimento potencial. Dessa forma, o estudante consegue fazer as atividades com ajuda do docente. Na teoria de Vygotsky, não especifica exatamente o professor, pois o autor não focou sua teoria na sala de aula. Vygotsky afirma que é o outro: pode ser o professor, o colega, mãe, pai...<br><br>Afirmativa III é Vygotsky. O desenvolvimento psíquico está da experiência histórica humana e dentro da cultura.<br><br>Afirmativa IV é Piaget. A visão de estágio de desenvolvimento está dentro da Teoria de Piaget. Piaget coloca o desenvolvimento na frente na aprendizagem. É necessário o amadurecimento das funções psíquicas para ocorrer o aprendizado.<br><br>Alternativa correta letra C.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Função para renderizar uma questão
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    // Impede de selecionar outra resposta se já foi respondida
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = optionBtn.getAttribute('data-letter');
+                        checkAnswer(index);
+                        updateQuizState(); // Habilita o botão Próxima após a resposta
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            // Se a pergunta já foi respondida, exibe o resultado
+            if (userAnswers[index]) {
+                checkAnswer(index, true);
+            }
+            updateQuizState();
+        }
+
+        // Função para verificar a resposta e exibir o resultado/comentário
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswer = userAnswers[index];
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswer && userAnswer.toUpperCase() === correctLetter) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            // Exibe a resposta correta e a do usuário
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true; // Desabilita todos os botões após a resposta
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                if (optionLetter === correctLetter) {
+                    btn.classList.add('correct');
+                }
+                if (optionLetter === userAnswer && optionLetter !== correctLetter) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Exibe a seção de comentário
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        // Função para atualizar os botões de navegação e o contador
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = !!userAnswers[currentQuestionIndex];
+            
+            // O botão "Próxima" só é habilitado se a pergunta atual foi respondida
+            // e não for a última pergunta.
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+
+            // Se for a última pergunta e ela foi respondida, exibe o placar final
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        // Função para mostrar o placar final
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        // Listeners para a navegação
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Inicia o quiz
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
