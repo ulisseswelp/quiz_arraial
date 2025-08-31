@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Legislação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Legislação - Parte 00</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 1 de 10</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        // Array de objetos com as perguntas, opções, respostas corretas e comentários
+        const questions = [
+            {
+                question: '41. Em conformidade com a Lei nº 13.146/2015 - Estatuto da Pessoa com Deficiência, analisar a sentença abaixo:<br><br>Compete ao Poder Público garantir a dignidade da pessoa com deficiência ao longo de toda a vida. Em situações de risco, emergência ou estado de calamidade pública, a pessoa com deficiência será considerada vulnerável, devendo o Poder Público adotar medidas para sua proteção e segurança (1ª parte). A pessoa com deficiência poderá ser obrigada a se submeter à intervenção clínica ou cirúrgica, ao tratamento ou à institucionalização forçada (2ª parte).<br><br>A sentença está:',
+                options: [
+                    'A) Totalmente correta.',
+                    'B) Correta somente em sua 1ª parte.',
+                    'C) Correta somente em sua 2ª parte.',
+                    'D) Totalmente incorreta.'
+                ],
+                answer: 'B',
+                comment: 'A 1ª parte é correta. Conforme o art. 10, parágrafo único, em situações de risco, a pessoa com deficiência é vulnerável e o poder público deve adotar medidas para sua proteção e segurança:<br><br>Art. 10. [...]<br>Parágrafo único. Em situações de risco, emergência ou estado de calamidade pública, a pessoa com deficiência será considerada vulnerável, devendo o poder público adotar medidas para sua proteção e segurança.<br><br>A 2ª parte é incorreta, pois a pessoa com deficiência não pode ser obrigada a se submeter a intervenção clínica ou cirúrgica:<br>Art. 11. A pessoa com deficiência não poderá ser obrigada a se submeter a intervenção clínica ou cirúrgica, a tratamento ou a institucionalização forçada.<br><br>Como somente a 1ª parte está correta, a alternativa B é correta e é o gabarito da questão.'
+            },
+            {
+                question: '42. De acordo com a Lei nº 13.146 de 6 de julho de 2015, Lei Brasileira de Inclusão da Pessoa com Deficiência, no que se refere ao Direito à Vida, analise as afirmativas a seguir e marque (V) para as Verdadeiras e (F) para as Falsas.<br><br>( ) A pessoa com deficiência não poderá ser obrigada a se submeter à intervenção clínica ou cirúrgica, a tratamento ou a institucionalização forçada.<br>( ) O consentimento prévio, livre e esclarecido da pessoa com deficiência é indispensável para a realização de tratamento, procedimento, hospitalização e pesquisa científica.<br>( ) A pessoa com deficiência somente será atendida sem seu consentimento prévio, livre e esclarecido em casos de risco de morte e de emergência em saúde, resguardado seu superior interesse e adotadas as salvaguardas legais cabíveis.<br>( ) O consentimento da pessoa com deficiência em situação de curatela não poderá ser suprido sob nenhuma circunstância.<br><br>Marque a opção que apresenta a sequência CORRETA.',
+                options: [
+                    'A) F – V – V – V.',
+                    'B) V – F – V – V.',
+                    'C) V – V – F – V.',
+                    'D) V – V – V – F.',
+                    'E) V – V – V – V.'
+                ],
+                answer: 'D',
+                comment: 'A assertiva I é verdadeira, pois a pessoa com deficiência não pode ser obrigada a se submeter a intervenção clínica ou cirúrgica:<br><br>Art. 11. A pessoa com deficiência não poderá ser obrigada a se submeter a intervenção clínica ou cirúrgica, a tratamento ou a institucionalização forçada.<br><br>A assertiva II é verdadeira. Exige-se o consentimento prévio, livre e esclarecido da pessoa com deficiência para a realização de qualquer tratamento, procedimento, hospitalização e pesquisa científica:<br>Art. 12. O consentimento prévio, livre e esclarecido da pessoa com deficiência é indispensável para a realização de tratamento, procedimento, hospitalização e pesquisa científica.<br><br>A assertiva III é verdadeira. A pessoa com deficiência pode ser submetida a tratamento de saúde sem prévio consentimento nos casos de risco de morte e de emergência em saúde, resguardado sempre o seu interesse superior e sempre adotadas as salvaguardas legais cabíveis:<br><br>Art. 13. A pessoa com deficiência somente será atendida sem seu consentimento prévio, livre e esclarecido em casos de risco de morte e de emergência em saúde, resguardado seu superior interesse e adotadas as salvaguardas legais cabíveis.<br><br>A assertiva IV é falsa. O consentimento poderá ser suprido, nos casos legais:<br><br>Art. 11. [...]<br>Parágrafo único. O consentimento da pessoa com deficiência em situação de curatela poderá ser suprido, na forma da lei.<br><br>A sequência correta é V, V, V e F, assim, a alternativa D é correta e é o gabarito da questão.'
+            },
+            {
+                question: '43. Segundo a Lei nº 13.146/2015 - Estatuto da Pessoa com Deficiência, marcar C para as afirmativas Certas, E para as Erradas e, após, assinalar a alternativa que apresenta a sequência CORRETA:<br><br>( ) O processo de habilitação e de reabilitação tem por objetivo o desenvolvimento de potencialidades, habilidades e aptidões que contribuam para a conquista da dependência da pessoa com deficiência e a qualificação do seu cuidador.<br>( ) A habilitação e a reabilitação se baseiam na avaliação indisciplinar e necessitam somente de um profissional específico de acordo com o tipo de deficiência.<br>( ) O processo de habilitação e reabilitação tem como diretriz o diagnóstico e a intervenção precoces.',
+                options: [
+                    'A) E - E - C.',
+                    'B) E - C - C.',
+                    'C) C - E - E.',
+                    'D) E - C - E.',
+                    'E) C - C - C.'
+                ],
+                answer: 'B',
+                comment: 'A assertiva I é errada, pois o objetivo da habilitação ou reabilitação é desenvolver potencialidades, talentos, habilidades e aptidões capazes de contribuir para a sua autonomia, não dependência:<br><br>Art. 14. [...]<br>Parágrafo único. O processo de habilitação e de reabilitação tem por objetivo o desenvolvimento de potencialidades, talentos, habilidades e aptidões físicas, cognitivas, sensoriais, psicossociais, atitudinais, profissionais e artísticas que contribuam para a conquista da autonomia da pessoa com deficiência e de sua participação social em igualdade de condições e oportunidades com as demais pessoas.<br><br>A assertiva II é errada. Na verdade, a avaliação é multidisciplinar:<br>Art. 15. O processo mencionado no art. 14 desta Lei baseia-se em avaliação multidisciplinar das necessidades, habilidades e potencialidades de cada pessoa, observadas as seguintes diretrizes:<br><br>A assertiva III é certa. Dentre outras diretrizes, o diagnóstico e intervenção precoce devem ser observados nos procedimentos da habilitação e reabilitação:<br><br>Art. 15. O processo mencionado no art. 14 desta Lei baseia-se em avaliação multidisciplinar das necessidades, habilidades e potencialidades de cada pessoa, observadas as seguintes diretrizes:<br>I - diagnóstico e intervenção precoces;<br><br>A sequência correta é E, E e C, assim, a alternativa A é correta e é o gabarito da questão.'
+            },
+            {
+                question: '44. Em conformidade com a Lei nº 13.146/2015 - Estatuto da Pessoa com Deficiência, em relação à habilitação e à reabilitação, analisar os itens abaixo:<br><br>I. O processo tem por objetivo o desenvolvimento de potencialidades, talentos, habilidades e aptidões exclusivamente físicas.<br>II. Nos programas e serviços para a pessoa com deficiência, é garantida a capacitação continuada de todos os profissionais que participem desses programas e serviços.<br>III. Precisam de uma rede de serviços articulados, abrangendo toda a atenção hospitalar e ambulatorial, com exceção da atenção primária, para atender às necessidades gerais da população com deficiência.<br><br>Está(ão) CORRETO(S):',
+                options: [
+                    'A) Somente o item I.',
+                    'B) Somente o item II.',
+                    'C) Somente os itens I e II.',
+                    'D) Somente os itens I e III.',
+                    'E) Todos os itens.'
+                ],
+                answer: 'B',
+                comment: 'A assertiva I é incorreta, pois o processo de habilitação e reabilitação não visa apenas desenvolver potencialidades, talentos, habilidades e aptidões físicas, mas também cognitivas, sensoriais, psicossociais, atitudinais, profissionais e artísticas:<br><br>Art. 14. [...]<br>Parágrafo único. O processo de habilitação e de reabilitação tem por objetivo o desenvolvimento de potencialidades, talentos, habilidades e aptidões físicas, cognitivas, sensoriais, psicossociais, atitudinais, profissionais e artísticas que contribuam para a conquista da autonomia da pessoa com deficiência e de sua participação social em igualdade de condições e oportunidades com as demais pessoas.<br><br>A assertiva II é correta, pois é garantida a capacitação continuada dos profissionais que participam dos programas e serviços de habilitação e reabilitação:<br><br>Art. 16. Nos programas e serviços de habilitação e de reabilitação para a pessoa com deficiência, são garantidos:<br>IV - capacitação continuada de todos os profissionais que participem dos programas e serviços.<br><br>A assertiva III é incorreta. O processo de habilitação e reabilitação deve ofertar rede de serviços articulados, mas não há previsão de exceção em relação à atenção primária:<br><br>Art. 15. O processo mencionado no art. 14 desta Lei baseia-se em avaliação multidisciplinar das necessidades, habilidades e potencialidades de cada pessoa, observadas as seguintes diretrizes:<br>IV - oferta de rede de serviços articulados, com atuação intersetorial, nos diferentes níveis de complexidade, para atender às necessidades específicas da pessoa com deficiência;<br><br>Como só as assertivas I e II estão corretas, a alternativa B é correta e é o gabarito da questão.'
+            },
+            {
+                question: '45. De acordo com a Lei nº 13.146/2015 - Estatuto da Pessoa com Deficiência, analisar a sentença abaixo:<br><br>À pessoa com deficiência internada ou em observação é assegurado o direito a acompanhante ou a atendente pessoal, devendo o órgão ou a instituição de saúde proporcionar condições adequadas para sua permanência em tempo parcial (1ª parte). São vedadas as formas de discriminação contra a pessoa com deficiência, exceto por meio de cobrança de valores diferenciados por planos e seguros privados de saúde, em razão de sua condição (2ª parte). É assegurado à pessoa com deficiência apenas o acesso aos serviços públicos de saúde (3ª parte).<br><br>A sentença está:',
+                options: [
+                    'A) Totalmente correta.',
+                    'B) Correta somente em suas 1ª e 2ª partes.',
+                    'C) Correta somente em suas 1ª e 3ª partes.',
+                    'D) Correta somente em suas 2ª e 3ª partes.',
+                    'E) Totalmente incorreta.'
+                ],
+                answer: 'E',
+                comment: 'A 1ª parte é errada, pois deve ser garantida a permanência em tempo integral do acompanhante ou atendente pessoal, conforme o art. 22 do EPD:<br><br>Art. 22. À pessoa com deficiência internada ou em observação é assegurado o direito a acompanhante ou a atendente pessoal, devendo o órgão ou a instituição de saúde proporcionar condições adequadas para sua permanência em tempo integral.<br><br>A 2ª parte é errada. É vedada a cobrança de valores diferenciados em razão da deficiência, conforme o art. 23:<br><br>Art. 23. São vedadas todas as formas de discriminação contra a pessoa com deficiência, inclusive por meio de cobrança de valores diferenciados por planos e seguros privados de saúde, em razão de sua condição.<br><br>A 3ª parte é errada. Uma série de direitos deve ser garantido à pessoa com deficiência, não só o atendimento de saúde.<br><br>Como a assertiva está totalmente incorreta, a alternativa E é correta e é o gabarito da questão.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Função para renderizar uma questão
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    // Impede de selecionar outra resposta se já foi respondida
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = optionBtn.getAttribute('data-letter');
+                        checkAnswer(index);
+                        updateQuizState(); // Habilita o botão Próxima após a resposta
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            // Se a pergunta já foi respondida, exibe o resultado
+            if (userAnswers[index]) {
+                checkAnswer(index, true);
+            }
+            updateQuizState();
+        }
+
+        // Função para verificar a resposta e exibir o resultado/comentário
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswer = userAnswers[index];
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswer && userAnswer.toUpperCase() === correctLetter) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            // Exibe a resposta correta e a do usuário
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true; // Desabilita todos os botões após a resposta
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                if (optionLetter === correctLetter) {
+                    btn.classList.add('correct');
+                }
+                if (optionLetter === userAnswer && optionLetter !== correctLetter) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Exibe a seção de comentário
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        // Função para atualizar os botões de navegação e o contador
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = !!userAnswers[currentQuestionIndex];
+            
+            // O botão "Próxima" só é habilitado se a pergunta atual foi respondida
+            // e não for a última pergunta.
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+
+            // Se for a última pergunta e ela foi respondida, exibe o placar final
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        // Função para mostrar o placar final
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        // Listeners para a navegação
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Inicia o quiz
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
