@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Legislação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Legislação - Parte 00</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 1 de 10</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        // Array de objetos com as perguntas, opções, respostas corretas e comentários
+        const questions = [
+            {
+                question: '31. Sobre a Lei nº 13.146 de 6 de julho de 2015, Lei Brasileira de Inclusão da Pessoa com Deficiência, leia a afirmativa a seguir.<br>Considera-se discriminação, em razão da deficiência, toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos e das de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias.<br><br>Marque a opção que preenche CORRETA e respectivamente as lacunas.',
+                options: [
+                    'A) deveres / obrigações legais / de ponta',
+                    'B) acessibilidades / arquitetônicas / em braile',
+                    'C) direitos / liberdades fundamentais / assistivas',
+                    'D) princípios / garantias / em braile',
+                    'E) desafios / limitações / necessárias'
+                ],
+                answer: 'C',
+                comment: 'O art. 4º, § 1º, do EPD, traz o conceito de discriminação, que é qualquer conduta que prejudique, impeça ou anule o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas:<br><br>Art. 4º [...]<br>§ 1º Considera-se discriminação em razão da deficiência toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas.<br><br>Assim, a alternativa C é correta e é o gabarito da questão.'
+            },
+            {
+                question: '32. A Lei nº 13.146 de 6 de julho de 2015, Lei Brasileira de Inclusão da Pessoa com Deficiência, preceitua que a pessoa com deficiência tem direito a receber atendimento prioritário. Analise as afirmativas a seguir e marque a assertiva INCORRETA, aquela que não se configura como finalidade desse atendimento prioritário.',
+                options: [
+                    'A) Proteção e socorro em quaisquer circunstâncias.',
+                    'B) Atendimento em todas as instituições e serviços de atendimento ao público.',
+                    'C) Disponibilização de pontos de parada, estações e terminais acessíveis de transporte coletivo de passageiros e garantia de segurança no embarque e no desembarque.',
+                    'D) Recebimento de restituição de imposto de renda.',
+                    'E) Disponibilização de recursos humanos e tecnológicos mínimos, sem a garantia de atendimento em igualdade de condições com as demais pessoas.'
+                ],
+                answer: 'E',
+                comment: 'O art. 9º do EPD elenca os procedimentos em que a pessoa com deficiência tem prioridade:<br><br>Art. 9º A pessoa com deficiência tem direito a receber atendimento prioritário, sobretudo com a finalidade de:<br><br>I - proteção e socorro em quaisquer circunstâncias;<br>II - atendimento em todas as instituições e serviços de atendimento ao público;<br>III - disponibilização de recursos, tanto humanos quanto tecnológicos, que garantam atendimento em igualdade de condições com as demais pessoas;<br>IV - disponibilização de pontos de parada, estações e terminais acessíveis de transporte coletivo de passageiros e garantia de segurança no embarque e no desembarque;<br>V - acesso a informações e disponibilização de recursos de comunicação acessíveis;<br>VI - recebimento de restituição de imposto de renda;<br>VII - tramitação processual e procedimentos judiciais e administrativos em que for parte ou interessada, em todos os atos e diligências.<br>§ 1º Os direitos previstos neste artigo são extensivos ao acompanhante da pessoa com deficiência ou ao seu atendente pessoal, exceto quanto ao disposto nos incisos VI e VII deste artigo.<br><br>As pessoas com deficiência têm direito a ter disponibilizados recursos em igualdade de oportunidades com as demais pessoas, assim, a alternativa E é incorreta e é o gabarito da questão.'
+            },
+            {
+                question: '33. Acerca da igualdade e da não discriminação, assinale a alternativa INCORRETA.',
+                options: [
+                    'A) Toda pessoa com deficiência tem direito à igualdade de oportunidades com as demais pessoas e não sofrerá nenhuma espécie de discriminação.',
+                    'B) A pessoa com deficiência está obrigada à fruição de benefícios decorrentes de ação afirmativa.',
+                    'C) A pessoa com deficiência será protegida de toda forma de negligência, discriminação, exploração, violência, tortura, crueldade, opressão e tratamento desumano ou degradante.',
+                    'D) A deficiência não afeta a plena capacidade civil da pessoa, inclusive para casar e constituir união estável.',
+                    'E) Considera-se discriminação em razão da deficiência toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas.'
+                ],
+                answer: 'B',
+                comment: 'A alternativa A é correta. As pessoas com deficiência têm direito à igualdade de oportunidades e não sofrerá nenhuma espécie de discriminação:<br><br>Art. 4º Toda pessoa com deficiência tem direito à igualdade de oportunidades com as demais pessoas e não sofrerá nenhuma espécie de discriminação.<br><br>A alternativa B é incorreta e é o gabarito da questão. Não é obrigatória a fruição dos benefícios de ação afirmativa:<br><br>Art. 4º [...]<br>§ 2º A pessoa com deficiência não está obrigada à fruição de benefícios decorrentes de ação afirmativa.<br><br>A alternativa C é correta. A pessoa com deficiência deve ser protegida de qualquer forma de abuso:<br><br>Art. 5º A pessoa com deficiência será protegida de toda forma de negligência, discriminação, exploração, violência, tortura, crueldade, opressão e tratamento desumano ou degradante.<br><br>A alternativa D é correta. A capacidade para casar e constituir união estável não é afetada pela deficiência:<br><br>Art. 6º A deficiência não afeta a plena capacidade civil da pessoa, inclusive para:<br>I - casar-se e constituir união estável;<br><br>A alternativa E é correta. A alternativa aponta corretamente o conceito de discriminação contra pessoa com deficiência:<br><br>Art. 4º [...]<br>§ 1º Considera-se discriminação em razão da deficiência toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas.'
+            },
+            {
+                question: '34. Segundo a Lei nº 13.146/2015 - Estatuto da Pessoa com Deficiência, a pessoa com deficiência tem direito a receber atendimento prioritário, sobretudo com a finalidade de:<br><br>I. Acesso a informações e disponibilização de recursos de comunicação acessíveis.<br>II. Tramitação processual e procedimentos judiciais e administrativos em que for parte ou interessada, em todos os atos e diligências.<br>III. Atendimento em todas as instituições e serviços de atendimento ao público.<br><br>Está(ão) CORRETO(S):',
+                options: [
+                    'A) Nenhum dos itens.',
+                    'B) Somente o item I.',
+                    'C) Somente os itens I e II.',
+                    'D) Somente os itens II e III.',
+                    'E) Todos os itens.'
+                ],
+                answer: 'E',
+                comment: 'O art. 9º do EPD indica os procedimentos em que a pessoa com deficiência tem prioridade:<br><br>Art. 9º A pessoa com deficiência tem direito a receber atendimento prioritário, sobretudo com a finalidade de:<br>I - proteção e socorro em quaisquer circunstâncias;<br>II - atendimento em todas as instituições e serviços de atendimento ao público;<br>III - disponibilização de recursos, tanto humanos quanto tecnológicos, que garantam atendimento em igualdade de condições com as demais pessoas;<br>IV - disponibilização de pontos de parada, estações e terminais acessíveis de transporte coletivo de passageiros e garantia de segurança no embarque e no desembarque;<br>V - acesso a informações e disponibilização de recursos de comunicação acessíveis;<br>VI - recebimento de restituição de imposto de renda;<br>VII - tramitação processual e procedimentos judiciais e administrativos em que for parte ou interessada, em todos os atos e diligências.<br><br>Todos os procedimentos mencionados na questão estão incluídos na regra de prioridade, assim, a alternativa E é correta e é o gabarito da questão.'
+            },
+            {
+                question: '35. Segundo a Lei nº 13.146/2015 ‐ Estatuto da Pessoa com Deficiência, é dever do Estado, da sociedade e da família assegurar à pessoa com deficiência, com prioridade, a efetivação dos direitos referentes, entre outros:<br><br>I. À profissionalização.<br>II. Ao desporto.<br>III. Aos avanços científicos e tecnológicos.<br>IV. À sexualidade.<br><br>Está(ão) CORRETO(S):',
+                options: [
+                    'A) Somente o item I.',
+                    'B) Somente o item III.',
+                    'C) Somente os itens I, II e III.',
+                    'D) Somente os itens II, III e IV.',
+                    'E) Todos os itens.'
+                ],
+                answer: 'E',
+                comment: 'O art. 8º elenca uma série de áreas em que o Estado deve garantir prioridade em favor da pessoa com deficiência:<br><br>Art. 8º É dever do Estado, da sociedade e da família assegurar à pessoa com deficiência, com prioridade, a efetivação dos direitos referentes à vida, à saúde, à sexualidade, à paternidade e à maternidade, à alimentação, à habitação, à educação, à profissionalização, ao trabalho, à previdência social, à habilitação e à reabilitação, ao transporte, à acessibilidade, à cultura, ao desporto, ao turismo, ao lazer, à informação, à comunicação, aos avanços científicos e tecnológicos, à dignidade, ao respeito, à liberdade, à convivência familiar e comunitária, entre outros decorrentes da Constituição Federal, da Convenção sobre os Direitos das Pessoas com Deficiência e seu Protocolo Facultativo e das leis e de outras normas que garantam seu bem-estar pessoal, social e econômico.<br><br>Todos os elementos mencionados na questão estão incluídos no artigo, assim, a alternativa E é correta e é o gabarito da questão.'
+            },
+            {
+                question: '36. De acordo com a Lei nº 13.146/2015 - Estatuto da Pessoa com Deficiência, sobre a igualdade e a não discriminação, analisar os itens abaixo:<br><br>I. A pessoa com deficiência será protegida de toda forma de negligência, discriminação, exploração, violência, tortura, crueldade, opressão e tratamento desumano ou degradante.<br>II. A deficiência não afeta a plena capacidade civil da pessoa, exceto para exercer o direito à família e à convivência familiar e comunitária.<br>III. É dever de todos comunicar à autoridade competente qualquer forma de ameaça ou de violação aos direitos da pessoa com deficiência.<br><br>Estão CORRETOS:',
+                options: [
+                    'A) Somente os itens I e II.',
+                    'B) Somente os itens I e III.',
+                    'C) Somente os itens II e III.',
+                    'D) Todos os itens.'
+                ],
+                answer: 'B',
+                comment: 'A assertiva I é correta. A pessoa com deficiência deve ser protegida de toda forma de abuso:<br><br>Art. 5º A pessoa com deficiência será protegida de toda forma de negligência, discriminação, exploração, violência, tortura, crueldade, opressão e tratamento desumano ou degradante.<br><br>A assertiva II é incorreta. A capacidade civil da pessoa com deficiência não é afetada, inclusive para exercer os direitos de família e a convivência familiar e comunitária:<br><br>Art. 6º A deficiência não afeta a plena capacidade civil da pessoa, inclusive para:<br>V - exercer o direito à família e à convivência familiar e comunitária; e<br><br>A assertiva III é correta. Todos têm o dever de comunicar às autoridades qualquer tipo de ameaça ou violação dos direitos da pessoa com deficiência:<br><br>Art. 7º É dever de todos comunicar à autoridade competente qualquer forma de ameaça ou de violação aos direitos da pessoa com deficiência.<br><br>Como estão corretas as assertivas I e II, a alternativa B é correta e é o gabarito da questão.'
+            },
+            {
+                question: '37. A Lei n. 13.146/2015 (Estatuto da Pessoa com Deficiência) traz alguns direitos e deveres das pessoas e da sociedade como um todo. Sobre o tema, julgue os itens a seguir e, ao final, assinale a alternativa correta:<br><br>I – Toda pessoas com deficiência tem direito à igualdade de oportunidades com as demais pessoas e não sofrerá nenhuma espécie de discriminação.<br>II – A deficiência só afeta a plena capacidade civil para o casamento.<br>III – É dever de todos comunicar à autoridade competente qualquer forma de ameaça ou de violação aos direitos da pessoa com deficiência.',
+                options: [
+                    'A) Apenas o item I é verdadeiro.',
+                    'B) Apenas o item II é verdadeiro.',
+                    'C) Apenas o item III é verdadeiro.',
+                    'D) Apenas os itens I e III são verdadeiros.',
+                    'E) Nenhum dos itens é verdadeiro.'
+                ],
+                answer: 'D',
+                comment: 'A assertiva I é correta, pois a pessoa com deficiência tem direito à igualdade de oportunidades e não deve sofrer nenhum tipo de discriminação:<br><br>Art. 4º Toda pessoa com deficiência tem direito à igualdade de oportunidades com as demais pessoas e não sofrerá nenhuma espécie de discriminação.<br><br>A assertiva II é incorreta. A deficiência não afeta a plena capacidade civil, inclusive para o casamento:<br><br>Art. 6º A deficiência não afeta a plena capacidade civil da pessoa, inclusive para:<br>I - casar-se e constituir união estável;<br><br>A assertiva III é correta. Todos têm o dever de comunicar às autoridades qualquer tipo de ameaça ou violação dos direitos da pessoa com deficiência:<br><br>Art. 7º É dever de todos comunicar à autoridade competente qualquer forma de ameaça ou de violação aos direitos da pessoa com deficiência.<br><br>Como as assertivas I e III são corretas, a alternativa D é correta e é o gabarito da questão.'
+            },
+            {
+                question: '38. Segundo a Lei Federal nº 13.146, são considerados critérios para avaliação da deficiência, exceto:',
+                options: [
+                    'A) Os fatores psicológicos, socioambientais e pessoais.',
+                    'B) A limitação no desempenho de atividades e a restrição de participação.',
+                    'C) As condições socioeconômicas e o impedimento de participação na vida social.',
+                    'D) Os impedimentos nas funções e nas estruturas do corpo.'
+                ],
+                answer: 'C',
+                comment: 'O art. 2º, § 1º, do EPD, elenca quais elementos devem ser analisados na avaliação da deficiência:<br><br>Art. 2º [...]<br>§ 1º A avaliação da deficiência, quando necessária, será biopsicossocial, realizada por equipe multiprofissional e interdisciplinar e considerará: (Vigência) (Vide Decreto nº 11.063, de 2022)<br>I - os impedimentos nas funções e nas estruturas do corpo;<br>II - os fatores socioambientais, psicológicos e pessoais;<br>III - a limitação no desempenho de atividades; e<br>IV - a restrição de participação.<br><br>Não consta dentre os elementos as condições socioeconômicas e o impedimento de participação na vida social, assim, a alternativa C é correta e é o gabarito da questão.'
+            },
+            {
+                question: '39. Leia com atenção as questões a seguir e marque (V) para verdadeiro e (F) para falso.<br><br>( ) A Lei 8069/1990 prescreve o direito ao respeito que consiste na inviolabilidade de integridade física, psíquica e moral da criança e do adolescente, abrangendo a preservação da imagem, da identidade, da autonomia, dos valores, ideias e crenças, dos espaços e objetos pessoais.<br><br>( ) O art. 5º da Lei 13.146/2015 diz que toda pessoa com deficiência tem direito à igualdade de oportunidades com as demais pessoas e não sofrerá nenhuma espécie de discriminação.<br><br>( ) De acordo com a Lei 13.146/2015, a pessoa com deficiência tem direito a receber atendimento prioritário, sobretudo com a finalidade de proteção e socorro em quaisquer circunstâncias; atendimento em todas as instituições e serviços de atendimento ao público; disponibilização de recursos, tanto humanos quanto tecnológicos, que garantam atendimento em igualdade de condições com as demais pessoas; disponibilização de pontos de parada, estações e terminais acessíveis de transporte coletivo de passageiros e garantia de segurança no embarque e no desembarque; acesso a informações e disponibilização de recursos de comunicação acessíveis; recebimento de restituição de imposto de renda; tramitação processual e procedimentos judiciais e administrativos em que for parte ou interessada, em todos os atos e diligências.<br><br>( ) De acordo com o ECA toda criança ou adolescente que estiver inserido em programa de acolhimento familiar ou institucional terá sua situação reavaliada, no máximo, a cada 6 (seis) meses, devendo a autoridade judiciária competente, com base em relatório elaborado por equipe interprofissional ou multidisciplinar, decidir pela possibilidade de reintegração familiar ou pela colocação em família substituta.<br><br>( ) É dever da instituição de ensino, clubes e agremiações recreativas e de estabelecimentos congêneres assegurar medidas apenas de prevenção e enfrentamento ao uso ou dependência de drogas ilícitas.<br><br>Considerando as assertivas acima, a sequência CORRETA é:',
+                options: [
+                    'A) V, F, V, F e F.',
+                    'B) F, V, V, F e F.',
+                    'C) F, F, F, V e V.',
+                    'D) V, V, V, V e F.',
+                    'E) F, V, V, F e V.'
+                ],
+                answer: 'A',
+                comment: 'A assertiva I é correta. Crianças e adolescentes têm direito ao respeito, o que inclui a inviolabilidade de uma série de elementos pessoais, de acordo com o art. 17 do ECA:<br><br>Art. 17. O direito ao respeito consiste na inviolabilidade da integridade física, psíquica e moral da criança e do adolescente, abrangendo a preservação da imagem, da identidade, da autonomia, dos valores, idéias e crenças, dos espaços e objetos pessoais.<br><br>A assertiva II é incorreta. As pessoas com deficiência têm direito à igualdade de oportunidades e não devem sofrer qualquer discriminação, mas esse direito está previsto no art. 4º, não no 5º, do EPD:<br><br>Art. 4º Toda pessoa com deficiência tem direito à igualdade de oportunidades com as demais pessoas e não sofrerá nenhuma espécie de discriminação.<br><br>A assertiva III é correta. A assertiva aponta corretamente os procedimentos em que a pessoa com deficiência tem direito a prioridade, de acordo com o art. 9º do EPD:<br><br>Art. 9º A pessoa com deficiência tem direito a receber atendimento prioritário, sobretudo com a finalidade de:<br>I - proteção e socorro em quaisquer circunstâncias;<br>II - atendimento em todas as instituições e serviços de atendimento ao público;<br>III - disponibilização de recursos, tanto humanos quanto tecnológicos, que garantam atendimento em igualdade de condições com as demais pessoas;<br>IV - disponibilização de pontos de parada, estações e terminais acessíveis de transporte coletivo de passageiros e garantia de segurança no embarque e no desembarque;<br>V - acesso a informações e disponibilização de recursos de comunicação acessíveis;<br>VI - recebimento de restituição de imposto de renda;<br>VII - tramitação processual e procedimentos judiciais e administrativos em que for parte ou interessada, em todos os atos e diligências.<br><br>A assertiva IV é incorreta. O prazo de reavaliação da situação de pessoas em acolhimento é de, no máximo, 3 meses, consoante o art. 19, § 1º, do ECA:<br><br>Art. 19. [...]<br>§ 1 o Toda criança ou adolescente que estiver inserido em programa de acolhimento familiar ou institucional terá sua situação reavaliada, no máximo, a cada 3 (três) meses, devendo a autoridade judiciária competente, com base em relatório elaborado por equipe interprofissional ou multidisciplinar, decidir de forma fundamentada pela possibilidade de reintegração familiar ou pela colocação em família substituta, em quaisquer das modalidades previstas no art. 28 desta Lei. (Redação dada pela Lei nº 13.509, de 2017)<br><br>A assertiva V é incorreta. As medidas devem ser de conscientização, prevenção e enfrentamento ao uso de drogas ilícitas, conforme o art. 53-A do ECA:<br><br>Art. 53-A. É dever da instituição de ensino, clubes e agremiações recreativas e de estabelecimentos congêneres assegurar medidas de conscientização, prevenção e enfrentamento ao uso ou dependência de drogas ilícitas. (Incluído pela Lei nº 13.840, de 2019)<br><br>Como a sequência correta é V, F, V, F, V, a alternativa A é correta e é o gabarito da questão.'
+            },
+            {
+                question: 'Considerando-se a Lei nº 13.146/2015 – Estatuto da Pessoa com Deficiência, analisar os itens abaixo:<br><br>I. A avaliação da deficiência, quando necessária, será biopsicossocial, realizada por equipe multiprofissional e interdisciplinar.<br>II. A pessoa com deficiência será protegida de toda forma de negligência, discriminação, exploração, violência, tortura, crueldade, opressão e tratamento desumano ou degradante.<br>III. A deficiência não afeta a plena capacidade civil da pessoa, exceto para casar-se e constituir união estável.<br><br>Está(ão) CORRETO(S):',
+                options: [
+                    'A) Somente o item I.',
+                    'B) Somente o item II.',
+                    'C) Somente os itens I e II.',
+                    'D) Somente os itens I e III.',
+                    'E) Somente os itens II e III.'
+                ],
+                answer: 'C',
+                comment: 'A assertiva I é correta. A avaliação da deficiência deve ser biopsicossocial e será realizada por equipe multidisciplinar e interdisciplinar, conforme o art. 2º, § 1º, do EPD:<br><br>Art. 2º [...]<br>§ 1º A avaliação da deficiência, quando necessária, será biopsicossocial, realizada por equipe multiprofissional e interdisciplinar e considerará: (Vigência) (Vide Decreto nº 11.063, de 2022)<br><br>A assertiva II é correta. A pessoa com deficiência deve ser protegida de toda forma de abuso, conforme o art. 5º do EPD:<br><br>Art. 5º A pessoa com deficiência será protegida de toda forma de negligência, discriminação, exploração, violência, tortura, crueldade, opressão e tratamento desumano ou degradante.<br><br>A assertiva III é incorreta. A pessoa com deficiência tem plena capacidade para casar e constituir união estável:<br><br>Art. 6º A deficiência não afeta a plena capacidade civil da pessoa, inclusive para:<br>I - casar-se e constituir união estável;<br><br>Como as assertivas I e II são corretas, a alternativa C é correta e é o gabarito da questão.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Função para renderizar uma questão
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    // Impede de selecionar outra resposta se já foi respondida
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = optionBtn.getAttribute('data-letter');
+                        checkAnswer(index);
+                        updateQuizState(); // Habilita o botão Próxima após a resposta
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            // Se a pergunta já foi respondida, exibe o resultado
+            if (userAnswers[index]) {
+                checkAnswer(index, true);
+            }
+            updateQuizState();
+        }
+
+        // Função para verificar a resposta e exibir o resultado/comentário
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswer = userAnswers[index];
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswer && userAnswer.toUpperCase() === correctLetter) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            // Exibe a resposta correta e a do usuário
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true; // Desabilita todos os botões após a resposta
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                if (optionLetter === correctLetter) {
+                    btn.classList.add('correct');
+                }
+                if (optionLetter === userAnswer && optionLetter !== correctLetter) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Exibe a seção de comentário
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        // Função para atualizar os botões de navegação e o contador
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = !!userAnswers[currentQuestionIndex];
+            
+            // O botão "Próxima" só é habilitado se a pergunta atual foi respondida
+            // e não for a última pergunta.
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+
+            // Se for a última pergunta e ela foi respondida, exibe o placar final
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        // Função para mostrar o placar final
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        // Listeners para a navegação
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Inicia o quiz
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
