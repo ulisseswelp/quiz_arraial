@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Conhecimentos Específicos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.15rem; /* Ajustado para melhor leitura */
+            font-weight: 500; /* Ajustado */
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+            line-height: 1.5;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+        
+        .option-button:disabled {
+             cursor: not-allowed;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            padding: 2rem;
+            background-color: #eef2ff;
+            border-radius: 1rem;
+        }
+        
+        #final-score h2 {
+           font-size: 1.75rem;
+           font-weight: 700;
+           color: #1f2937;
+           margin-bottom: 0.5rem;
+        }
+        
+        #final-score p {
+           font-size: 1.1rem;
+           color: #374151;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Conhecimentos Específicos - Parte 02</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            <!-- As questões serão injetadas aqui pelo JavaScript -->
+        </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 1 de 10</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: '1. No fim do ano de 2015, Brasil criou lei para lidar com o Bullying nas escolas. Sobre esse assunto, julgue os itens:<br><br>I. A lei aprovada define bullying como todo ato de violência física ou psicológica, intencional e repetitivo que ocorre com motivação evidente, praticado por indivíduo ou grupo, contra uma ou mais pessoas, com o objetivo de intimidá-la ou agredi-la, causando dor e angústia à vítima, em uma relação de desequilíbrio de poder entre as partes envolvidas.<br>II. Não há na lei menção ao cyberbullying, onde são usados os instrumentos da internet "para depreciar, incitar a violência, adulterar fotos e dados pessoais com o intuito de criar meios de constrangimento psicossocial".<br>III. A lei sugere que as escolas trabalhem com a prevenção do problema, já que muitos estabelecimentos de ensino não admitem a ocorrência do bullying entre seus alunos ou não sabe como tratar a questão.',
+                options: [
+                    'A) apenas I e II estão corretos;',
+                    'B) apenas I e III estão corretos;',
+                    'C) apenas II e III estão corretos;',
+                    'D) todos estão corretos.'
+                ],
+                answer: 'B',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário.<br><br>Afirmativa I está correta. Bullying é uma ação persistente de violência física ou psicológica.<br>Afirmativa II está incorreta. Na legislação do enunciado há menção ao cyberbullying.<br>Afirmativa III está correta. O foco deve ser na prevenção e não quando o problema de bullying já está instalado na instituição escolar.<br><br>Alternativa correta letra B.'
+            },
+            {
+                question: '2. Um em cada dez estudantes brasileiros é vítima de bullying – anglicismo que se refere a atos de intimidação e violência física ou psicológica, geralmente em ambiente escolar. Especialistas defendem que pais e escola devem estar atentos ao comportamento dos jovens e manter sempre abertos os canais de comunicação com eles. O diálogo continua a ser a melhor arma contra esse tipo de violência, que pode causar efeitos devastadores em crianças e adolescentes.<br><br>A Lei nº 13.185, em vigor desde 2016, classifica o bullying como intimidação sistemática, quando há violência física ou psicológica em atos de humilhação ou discriminação. A classificação também inclui ataques físicos, insultos, ameaças, comentários e apelidos pejorativos, entre outros. O que caracteriza o bullying:',
+                options: [
+                    'A) são as implicâncias que ocorrem, normalmente, durante jogos e atividades competitivas com a supervisão de professores.',
+                    'B) é quando se torna algo rotineiro, em que uma criança ou jovem ou grupo começa a perseguir um ou mais colegas.',
+                    'C) é a maneira intencional da brincadeira de mau gosto, que acontece nos intervalos das aulas e recreios.',
+                    'D) é o deboche que desqualifica o colega, suscitando dúvidas quanto ao seu caráter, opção de gênero ou etnia.',
+                    'E) são as provocações maldosas, envolvendo xingamentos que atentem sobre a dignidade da pessoa ou de alguém da sua família.'
+                ],
+                answer: 'B',
+                comment: 'A alternativa A está incorreta. O bullying normalmente acontece fora dos olhos dos professores.<br>A alternativa B está correta. A perseguição caracteriza o bullying por ser sistemática.<br>A alternativa C está incorreta. A brincadeira de mau gosto é uma violência, mas tem que ter a característica de ser rotineira para configurar bullying.<br>A alternativa D está incorreta. O deboche é uma violência, mas tem que ter uma rotina nas agressões.<br>A alternativa E está incorreta. As provocações maldosas têm que ter a característica de ser rotineira para configurar bullying.'
+            },
+            {
+                question: '3. A Lei Federal nº 13.185 (que Institui o Programa de Combate à Intimidação Sistemática), em vigor desde 2016, classifica o bullying como intimidação sistemática, quando há violência física ou psicológica em atos de humilhação ou discriminação. A classificação também inclui:',
+                options: [
+                    'A) ataques físicos, insultos, ameaças, comentários e apelidos pejorativos.',
+                    'B) utilização de bonés, camisas de time, óculos escuros e chinelos.',
+                    'C) cyberbullying através da exposição nas redes sociais e no bairro.',
+                    'D) serviços forçados, sem remuneração ou troca de favorecimentos.',
+                    'E) impedimento de acesso ao transporte público e/ou bancos.'
+                ],
+                answer: 'A',
+                comment: 'A alternativa A está correta. A descrição da alternativa sugere violência física e psicológica. É a definição de Bullying.<br>A alternativa B está incorreta. A descrição da alternativa descreve uso de vestimenta e não bullying.<br>A alternativa C está incorreta. Cyberbullying é exclusivo na internet.<br>A alternativa D está incorreta. Não existe este conceito de bullying.<br>A alternativa E está incorreta. Isso pode ser racismo e não bullying.'
+            },
+            {
+                question: '4. O bullying escolar é um fenômeno mundial cuja preocupação corresponde diretamente às preocupações relacionadas ao processos de exclusão na escola. A proposta pedagógica curricular voltada para o direito à inclusão atribui ao referido fenômeno um dos principais obstáculos ao convívio escolar baseado no respeito à diferença. Desse modo, a prática de bullying nas escolas se caracteriza, entre outros aspectos, por apresentar:<br><br>1. palavras ofensivas<br>2. humilhação<br>3. difusão de boatos<br>4. isolamento<br>5. ameaças<br><br>Estão corretas',
+                options: [
+                    'A) 1 e 2, apenas',
+                    'B) 4 e 5, apenas',
+                    'C) 2, 3 e 5, apenas',
+                    'D) 1, 3 e 4, apenas',
+                    'E) 1, 2, 3, 4 e 5'
+                ],
+                answer: 'E',
+                comment: 'Analisaremos as afirmativas pela ordem e colocaremos a alternativa correta ao final do comentário.<br><br>Afirmativa 1 está correta. Violência psicológica. Xingamentos são muito incômodos e agressivos.<br>Afirmativa 2 está correta. Violência psicológica. Ato de inferiorizar o outro.<br>Afirmativa 3 está correta. Violência psicológica. Premeditação para inferiorizar o outro.<br>Afirmativa 4 está correta. Violência psicológica. Premeditação de isolamento social da vítima.<br>Afirmativa 5 está correta. Violência psicológica. Ato de infringir medo de uma possível agressão.<br><br>Alternativa correta letra E.'
+            },
+            {
+                question: '5. Um professor distribuiu a tirinha a seguir para seus alunos do 5º ano. Em seguida, organizou uma roda de conversa sobre respeito e prevenção ao bullying.<br><br><img src="Figura-P02-Q5.jpg" alt="Tira." class="mx-auto rounded-lg shadow-md mt-4"><br><br>A atividade proposta está em consonância com o que dispõe a LDB vigente sobre o Ensino Fundamental, na medida em que',
+                options: [
+                    'A) discute o sistema político.',
+                    'B) forma atitudes e valores.',
+                    'C) fortalece os vínculos de família.',
+                    'D) decodifica a linguagem artística.',
+                    'E) desenvolve a capacidade de escrita.'
+                ],
+                answer: 'B',
+                comment: 'A alternativa A está incorreta. As crianças falam de possibilidade de violência psicológica.<br>A alternativa B está correta. Os valores e atitudes estão por trás do problema de bullying na escola.<br>A alternativa C está incorreta. Não há menção a nenhuma família na tirinha.<br>A alternativa D está incorreta. Não trata da linguagem.<br>A alternativa E está incorreta. Não trata de escrita.'
+            },
+            {
+                question: '6. Todo bullying é uma agressão, mas nem toda agressão é classificada como bullying. De acordo com o art. 2º da Lei nº 13.185/2015:<br>Caracteriza-se a intimidação sistemática (bullying) quando há violência física ou psicológica em atos de intimidação, humilhação ou discriminação e, ainda, quando há',
+                options: [
+                    'A) isolamento social consciente e premeditado.',
+                    'B) discussões ou brigas pontuais.',
+                    'C) conflitos entre professor e aluno.',
+                    'D) competitividade nas aulas de educação física.',
+                    'E) conflitos aluno e gestor.'
+                ],
+                answer: 'A',
+                comment: 'A alternativa A está correta. O agressor isola a vítima das relações de amizade de forma premeditada. Isso ocorre através da violência física ou psicológica sistemática.<br>A alternativa B está incorreta. São situações que podem ocorrer e de forma eventual não é bullying.<br>A alternativa C está incorreta. Conflitos podem ocorrer entre professor e aluno desde que não o tempo todo.<br>A alternativa D está incorreta. Competição nas aulas de educação física não caracteriza bullying.<br>A alternativa E está incorreta. Conflitos podem ocorrer entre gestor e aluno desde que não o tempo todo.'
+            },
+            {
+                question: '7. Embora não completamente aceita pelos pesquisadores do tema, o bullying tem como sua definição mais aceita: atitudes agressivas, intencionais e repetitivas, que ocorrem sem motivação evidente, adotadas por um ou mais estudantes contra outro(s), causando dor e angústia, sendo executadas dentro de uma relação desigual de poder. Das ações a seguir, caracteriza-se como bullying:',
+                options: [
+                    'A) tratamento de forma recorrente e homofóbica a um aluno homossexual.',
+                    'B) discussões ou brigas pontuais.',
+                    'C) pegar o material de outra criança sem autorização.',
+                    'D) uma falta violenta durante um jogo de futebol entre alunos.',
+                    'E) uma criança tascar uma mordida em outra.'
+                ],
+                answer: 'A',
+                comment: 'A alternativa A está correta. Há a característica rotineira e de violência contra a diversidade humana.<br>A alternativa B está incorreta. Não há menção a uma agressão sistemática deliberada.<br>A alternativa C está incorreta. Isso pode não ser uma violência. Pode ser apenas uma falta de seguir regras.<br>A alternativa D está incorreta. Não é bullying, pois pode ser algo eventual de um jogo esportivo.<br>A alternativa E está incorreta. Pode não ser bullying por não ser só de vez em quando.'
+            },
+            {
+                question: '8. Processos de discriminação ou de bullying existem nas escolas e precisam ser combatidos em um ambiente escolar que busca se construir como um ambiente de Escola Cidadã. Assinale a alternativa correta que demonstre um planejamento escolar que busque combater esses processos.',
+                options: [
+                    'A) A escola voltada para a formação cidadã deve incentivar o desenvolvimento de atividades curriculares que mostrem a pluralidade da diversidade existente na sociedade - racial econômica, religiosa, cultural e sexual – deixando claro o que é o bullying e quais os passos a serem tomados pela escola para coibi-lo.',
+                    'B) A escola voltada para a formação cidadã deve incentivar o desenvolvimento de atividades curriculares que mostrem a importância de coibir as diferentes orientações sexuais, religiosas e culturais que se afastem das normatividades instituídas.',
+                    'C) A escola voltada para a formação cidadã deve promover atividades curriculares que não toquem no assunto da discriminação contra identidades plurais, pois para anular a existência de um assunto, basta não falar nele.',
+                    'D) A escola voltada para a formação cidadã deve apresentar à comunidade escolar nomes dos alunos que praticam o bullying, fazendo-os com que se sintam envergonhados dos seus atos.',
+                    'E) A escola voltada para a formação cidadã deve esclarecer que piadas e brincadeiras sobre diferenças físicas, psicológicas e de orientação sexual são naturais e não passam de brincadeiras que dão leveza às relações estabelecidas no ambiente escolar.'
+                ],
+                answer: 'A',
+                comment: 'A alternativa A está correta. A prevenção do bullying ocorre por atividades e projetos que pensem a diversidade humana.<br>A alternativa B está incorreta. Não é coibir, mas dar voz a diversidade humana.<br>A alternativa C está incorreta. Pelo contrário, é necessário tocar no assunto da discriminação.<br>A alternativa D está incorreta. A descrição da alternativa acarreta e mais situação de violência na escola.<br>A alternativa E está incorreta. Pelo contrário, as piadas não devem ser naturalizadas por configurarem uma violência psicológica.'
+            },
+            {
+                question: '9. A Lei n° 13.185/2015 aborda o combate à intimidação sistemática (bullying), avançando no enfrentamento dessa prática. No Artigo 3º, a intimidação sistemática é classificada conforme as ações praticadas. Diante disso, assinale a alternativa que representa essa classificação de forma correta.',
+                options: [
+                    'A) Sexual: assediar, chantagear, induzir e/ou abusar.',
+                    'B) Verbal: insultar, xingar e apelidar pejorativamente.',
+                    'C) Social: ignorar, caluniar e excluir.',
+                    'D) Moral: difamar, isolar, disseminar rumores.',
+                    'E) Psicológica: perseguir, ignorar, aterrorizar, intimidar, dominar, manipular, chantagear e infernizar.'
+                ],
+                answer: 'B',
+                comment: 'Gabarito: letra B.<br><br>As alternativas fizeram uma confusão na classificação. A única certa, conforme a legislação, é aquela definida na letra B.<br>Alternativa A: Sexual: assediar, <s>chantagear</s>, induzir e/ou abusar. “Chantagear” pertence à classificação PSIOLÓGICA!<br>Alternativa C: Social: ignorar, <s>caluniar</s> e excluir. “Caluniar” pertence à classificação SOCIAL! No rol da classificação social, faltou citar: “isolar”<br>Alternativa D: Moral: difamar, <s>isolar</s>, disseminar rumores. Isolar pertence à classificação SOCIAL! No rol da classificação moral, faltou citar: “caluniar”.<br>Alternativa E: Psicológica: perseguir, <s>ignorar</s>, aterrorizar, intimidar, dominar, manipular, chantagear e infernizar. “Ignorar” pertence à classificação SOCIAL! No rol da classificação psicológica, faltou citar: “amedrontar”.<br><br>Importante! O fato de a alternativa não elencar todas as possibilidades não a deixa incorreta. Elas estão incorretas por citarem atitudes de classificação equivocada. Os comentários estão postos para que você tenha melhor compreensão do conteúdo e de certa forma, revise as classificações.'
+            },
+            {
+                question: '10. A Lei n° 13.185/2015 apresenta em seu texto os objetivos do Programa. Com base no art. 4º, analise as assertivas e assinale a alternativa que aponta as corretas.<br><br>I. Serão produzidos e publicados relatórios bimestrais das ocorrências de intimidação sistemática (bullying) nos Estados e Municípios para planejamento das ações.<br>II. Implementar e disseminar campanhas de educação, conscientização e informação.<br>III. É dever do estabelecimento de ensino, dos clubes e das agremiações recreativas assegurar medidas de conscientização, prevenção, diagnose e combate à violência e à intimidação sistemática (bullying).<br>IV. Dar assistência psicológica, social e jurídica às vítimas e aos agressores.',
+                options: [
+                    'A) Apenas I e III.',
+                    'B) Apenas II e III.',
+                    'C) Apenas III e IV.',
+                    'D) Apenas II e IV.',
+                    'E) I, II, III e IV.'
+                ],
+                answer: 'D',
+                comment: 'Alternativa correta: letra D. Embora os itens I e III estejam em consonância com a norma, não representam objetivos constantes do dispositivo citado no enunciado.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+        const navigation = document.getElementById('navigation');
+
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    if (userAnswers[index] === undefined) {
+                        userAnswers[index] = {
+                            answer: optionBtn.getAttribute('data-letter'),
+                            button: optionBtn
+                        };
+                        checkAnswer(index);
+                        updateQuizState(); 
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            if (userAnswers[index]) {
+                 checkAnswer(index, true); 
+            }
+            updateQuizState();
+        }
+
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswerData = userAnswers[index];
+            
+            if (!userAnswerData) return;
+
+            const userAnswerLetter = userAnswerData.answer;
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswerLetter.toUpperCase() === correctLetter.toUpperCase()) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true; 
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                
+                if (optionLetter === correctLetter.toUpperCase()) {
+                    btn.classList.add('correct');
+                } else if (optionLetter === userAnswerLetter.toUpperCase()) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = userAnswers[currentQuestionIndex] !== undefined;
+            
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+
+            if (Object.keys(userAnswers).length === questions.length) {
+                showFinalScore();
+                nextBtn.disabled = true; // Desabilita o botão próxima ao final
+            }
+        }
+
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            navigation.style.display = 'none'; // Esconde a navegação
+            
+            const percentage = (score / questions.length) * 100;
+            let performanceMessage = '';
+
+            if (percentage >= 70) {
+                performanceMessage = "Excelente desempenho!";
+            } else if (percentage >= 50) {
+                performanceMessage = "Bom trabalho, continue praticando!";
+            } else {
+                performanceMessage = "Não desanime, continue estudando!";
+            }
+
+            finalScoreDisplay.innerHTML = `
+                <h2>Quiz Finalizado!</h2>
+                <p>Você acertou ${score} de ${questions.length} questões (${percentage.toFixed(0)}%).</p>
+                <p class="mt-2 font-semibold">${performanceMessage}</p>
+            `;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            navigation.style.display = 'flex';
+            finalScoreDisplay.classList.add('hidden');
+            restartBtn.classList.add('hidden');
+            renderQuestion(currentQuestionIndex);
+        });
+
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
+
