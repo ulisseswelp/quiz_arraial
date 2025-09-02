@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abordagens de Avaliação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .section-title {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 100%;
+            width: 8px;
+            background-color: #1c64f2;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    
+    <!-- Título Principal -->
+    <header class="text-center mb-10">
+        <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800">
+            BULLYING
+        </h1>
+    </header>
+
+    <main class="container mx-auto max-w-7xl space-y-12">
+        
+        <!-- Bloco 1: Bullying na escola -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-700 section-title mb-4">Bullying na escola</h2>
+            <div class="space-y-4">
+                <div class="p-4 bg-gray-50 rounded-xl shadow-inner border border-gray-100">
+                    <p class="font-semibold text-gray-800"><span class="text-blue-600 font-bold mr-2">•</span> Violência física e psicológica;</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-xl shadow-inner border border-gray-100">
+                    <p class="font-semibold text-gray-800"><span class="text-blue-600 font-bold mr-2">•</span> Sistemática/rotineira.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloco 2: Lei 13.185/15 -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-700 section-title mb-4">Lei 13.185/15 - Institui Programa de Combate à Intimidação Sistemática (Bullying)</h2>
+            <div class="space-y-4">
+                <div class="p-4 bg-gray-50 rounded-xl shadow-inner border border-gray-100">
+                    <p class="font-semibold text-gray-800"><span class="text-blue-600 font-bold mr-2">•</span> Prevenção e combate;</p>
+                    <p class="text-gray-600 pl-4">Capacitação de equipes pedagógicas; implementação de campanhas; orientação e assistência.</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-xl shadow-inner border border-gray-100">
+                    <p class="font-semibold text-gray-800"><span class="text-blue-600 font-bold mr-2">•</span> Implementação e a correta execução:</p>
+                    <p class="text-gray-600 pl-4">Convênios e estabelecer parcerias.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloco 3: Cyberbullying -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-700 section-title mb-4">Cyberbullying</h2>
+            <div class="p-4 bg-gray-50 rounded-xl shadow-inner border border-gray-100">
+                <p class="font-semibold text-gray-800"><span class="text-blue-600 font-bold mr-2">•</span> Violência sistemática através da Internet.</p>
+            </div>
+        </div>
+    </main>
+    
+</body>
+</html>
