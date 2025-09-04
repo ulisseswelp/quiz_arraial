@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Legislação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Legislação - Parte 02</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            <!-- Question cards will be injected here by JavaScript -->
+        </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 1 de 10</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        // Array de objetos com as perguntas, opções, respostas corretas e comentários
+        const questions = [
+            {
+                question: '1. (CESPE/TRF6 - 2025) Julgue os próximos itens de acordo com o Estatuto da Pessoa com Deficiência e as Leis n.º 10.048/2000 e n.º 10.098/2000.<br><br>Faculta-se à pessoa com deficiência a dotação do processo de tomada de decisão apoiada.',
+                options: [
+                    'A) VERDADEIRO',
+                    'B) FALSO'
+                ],
+                answer: 'A',
+                comment: 'Comentários<br>A assertiva está certa. Às pessoas com deficiência é permitida a adoção do processo de tomada de decisão apoiada, conforme § 4º do art. 84 do Estatuto da Pessoa com Deficiência. Veja:<br><br>Art. 84. A pessoa com deficiência tem assegurado o direito ao exercício de sua capacidade legal em igualdade de condições com as demais pessoas.<br>(...)<br>§ 2º É facultado à pessoa com deficiência a adoção de processo de tomada de decisão apoiada.<br><br>De acordo com o art. 1.783-A, do Código Civil, o conceito é:<br><br>Art. 1.783-A. A tomada de decisão apoiada é o processo pelo qual a pessoa com deficiência elege pelo menos 2 (duas) pessoas idôneas, com as quais mantenha vínculos e que gozem de sua confiança, para prestar-lhe apoio na tomada de decisão sobre atos da vida civil, fornecendo-lhes os elementos e informações necessários para que possa exercer sua capacidade.<br><br>Gabarito: A.'
+            },
+            {
+                question: '2. (CESPE/TRF6 - 2025) Julgue os próximos itens, de acordo com o texto do Estatuto da Pessoa com Deficiência, da Lei n.º 10.048/2000, que trata da prioridade de atendimento às pessoas com deficiência, e da Lei n.º 10.098/2000, que estabelece normas gerais e critérios básicos para a promoção da acessibilidade.<br><br>De acordo com o Estatuto da Pessoa com Deficiência, a curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial.',
+                options: [
+                    'A) VERDADEIRO',
+                    'B) FALSO'
+                ],
+                answer: 'A',
+                comment: 'Comentários<br>A assertiva está certa. A curatela se restringe aos direitos de natureza patrimonial e negocial, como estabelece o art. 85, caput, do Estatuto da Pessoa com Deficiência – Lei n. 10.048/2000. Observe:<br><br>Art. 85. A curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial. <br>§ 1º A definição da curatela não alcança o direito ao próprio corpo, à sexualidade, ao matrimônio, à privacidade, à educação, à saúde, ao trabalho e ao voto. <br>§ 2º A curatela constitui medida extraordinária, devendo constar da sentença as razões e motivações de sua definição, preservados os interesses do curatelado. <br>§ 3º No caso de pessoa em situação de institucionalização, ao nomear curador, o juiz deve dar preferência a pessoa que tenha vínculo de natureza familiar, afetiva ou comunitária com o curatelado. <br><br>Gabarito: A.'
+            },
+            {
+                question: '3. (CESPE/TRF6 - 2025) (ADAPTADA) Julgue os itens a seguir de acordo com o Estatuto da Pessoa com Deficiência.<br><br>O direito das pessoas com deficiência a atendimento prioritário nos órgãos do Poder Judiciário brasileiro estende-se a seus acompanhantes.',
+                options: [
+                    'A) VERDADEIRO',
+                    'B) FALSO',
+                    'C) BASEADO NA PERGUNTA NADA SE PODE AFIRMAR'
+                ],
+                answer: 'C',
+                comment: 'Comentários <br>A questão foi anulada pela banca, mas analisemos os motivos. Numa primeira análise, a assertiva estaria certa. Isso porque, de acordo com o art. 9º do referido estatuto, boa parte dos direitos englobados no atendimento prioritário se estendem ao acompanhante. Observe:<br><br>Art. 9º A pessoa com deficiência tem direito a receber atendimento prioritário, sobretudo com a finalidade de:<br><br>I - proteção e socorro em quaisquer circunstâncias;<br>II - atendimento em todas as instituições e serviços de atendimento ao público;<br>III - disponibilização de recursos, tanto humanos quanto tecnológicos, que garantam atendimento em igualdade de condições com as demais pessoas;<br>IV - disponibilização de pontos de parada, estações e terminais acessíveis de transporte coletivo de passageiros e garantia de segurança no embarque e no desembarque;<br>V - acesso a informações e disponibilização de recursos de comunicação acessíveis;<br>VI - recebimento de restituição de imposto de renda<br>VII - tramitação processual e procedimentos judiciais e administrativos em que for parte ou interessada, em todos os atos e diligências. <br><br>§ 1º Os direitos previstos neste artigo são extensivos ao acompanhante da pessoa com deficiência ou ao seu atendente pessoal, exceto quanto ao disposto nos incisos VI e VII deste artigo.<br><br>Contudo, fica a dúvida: estaria a assertiva falando de atendimento nos órgãos do Poder Judiciário, de balcão mesmo, ou de processos? Porque se estamos falando de processos não há extensão aos acompanhantes, como você pode ver acima (§ 1º e inciso VII). A ambiguidade faz as duas respostas estarem certas.<br><br>Gabarito: C.'
+            },
+            {
+                question: '4. (CESPE/MPE-BA - 2023) A respeito do papel do MP na aplicação do Estatuto da Pessoa com Deficiência (Lei n.° 13.146/2015), assinale a opção correta.',
+                options: [
+                    'A) É dispensável a presença do MP quando a pessoa com deficiência intelectual constitui advogado por meio de recursos próprios para definir a sua curatela, dada a presunção legal de que o patrono da causa saberá conduzir a ação judicial respeitando os direitos da pessoa com deficiência.',
+                    'B) Não cabe ao MP fornecer orientações e informações sobre os direitos previstos no referido estatuto, pois é responsabilidade dos Poderes Executivo e Legislativo promover a conscientização e o conhecimento a respeito da deficiência.',
+                    'C) O MP pode ajuizar ações judiciais para proteger os direitos das pessoas com deficiência, buscando garantir a sua efetivação e responsabilizando aqueles que os violam, desde que haja consentimentos dos responsáveis legais.',
+                    'D) O MP atua como fiscal da lei e defensor dos direitos das pessoas com deficiência.',
+                    'E) De acordo com expressa vedação legal, o MP está impedido de estabelecer convênios e parcerias com entidades governamentais e não governamentais para a promoção e defesa dos direitos da pessoa com deficiência.'
+                ],
+                answer: 'D',
+                comment: 'Comentários <br>A alternativa A é incorreta. Conforme o art. 752, § 1º, do CPC/2015, é obrigatória a intervenção do MP como fiscal da ordem jurídico nos processos de interdição.<br><br>A alternativa B é incorreta. O MP, enquanto órgão estatal, tem a obrigação de agir para tornar efetivos os direitos das pessoas com deficiência, inclusive por meio da prestação de orientação e informação.<br><br>A alternativa C é incorreta. A atuação do MP em defesa dos interesses individuais indisponíveis não depende do consentimento de quem quer que seja.<br><br>A alternativa D está correta e é o gabarito da questão. O papel do MP é o de resguardar a efetividade da lei e dos direitos das pessoas com deficiência.<br><br>A alternativa E é incorreta. Pelo contrário, o art. 79, §3º, do EPD, prevê que o MP deve tomar as medidas necessárias para garantir os direitos previstos na lei, o que abrange a realização de convênios e parcerias.'
+            },
+            {
+                question: '5. (CESPE/DPE-DF - 2022) Acerca dos direitos difusos e coletivos, julgue o item a seguir.<br>A titularidade da proposição de ações coletivas para a proteção de direitos difusos, coletivos, individuais homogêneos e individuais indisponíveis das pessoas com deficiência restringe-se ao Ministério Público e à Defensoria Pública.',
+                options: [
+                    'A) VERDADEIRO',
+                    'B) FALSO'
+                ],
+                answer: 'B',
+                comment: 'Comentários<br>Na verdade, aplica-se o art. 3º da Lei n. 7.853/1989, que prevê a legitimidade do MP, da DP, da União, dos Estados, dos Municípios, do Distrito Federal, de associação constituída há mais de um ano, de autarquia, de empresa pública, de fundação ou sociedade de economia mista.<br><br>Assim, a assertiva está incorreta, gabarito letra B.'
+            },
+            {
+                question: '6. (CESPE/MPEAP - 2021) A definição de curatela de pessoa com deficiência consiste em medida protetiva de caráter',
+                options: [
+                    'A) preferencial.',
+                    'B) discricionário.',
+                    'C) extraordinário.',
+                    'D) adaptativo.',
+                    'E) assistencial.'
+                ],
+                answer: 'C',
+                comment: 'Comentários <br>De acordo com o art. 84, § 3º, a curatela é medida protetiva extraordinária, proporcional às necessidades e às circunstâncias de cada cura, devendo durar o menor tempo possível:<br><br>Art. 84. [...] <br>§ 3º A definição de curatela de pessoa com deficiência constitui medida protetiva extraordinária, proporcional às necessidades e às circunstâncias de cada caso, e durará o menor tempo possível.<br><br>Assim, a alternativa C é correta e é o gabarito da questão.'
+            },
+            {
+                question: '7. (CESPE/TJ AM - 2019) Com base na Lei n.º 13.146/2015 (Lei Brasileira de Inclusão da Pessoa com Deficiência) e em suas alterações, julgue o item a seguir.<br><br>É vedado ao juiz nomear, de ofício, curador a pessoa com deficiência em situação de curatela.',
+                options: [
+                    'A) VERDADEIRO',
+                    'B) FALSO'
+                ],
+                answer: 'B',
+                comment: 'Comentários <br>A assertiva está incorreta. A nomeação ex officio será possível na hipótese do art. 87 do Estatuto da Pessoa com Deficiência (Lei nº 13.146/2015): "Em casos de relevância e urgência e a fim de proteger os interesses da pessoa com deficiência em situação de curatela, será lícito ao juiz, ouvido o Ministério Público, de ofício ou a requerimento do interessado, nomear, desde logo, curador provisório, o qual estará sujeito, no que couber, às disposições do Código de Processo Civil."<br>Gabarito letra B.'
+            },
+            {
+                question: '8. (CESPE/MPU - 2018) Empresa de ônibus concessionária de serviço público foi condenada a indenizar um casal de cadeirantes em razão da recusa de quatro motoristas em embarcá-los. Havia somente o casal no ponto de ônibus no início da noite, e os motoristas da empresa não atendiam ao sinal de parada; passavam direto, propositadamente.<br>A partir dessa situação hipotética, julgue os próximos itens, acerca do direito à acessibilidade.<br><br>Pelo fato de quatro de seus motoristas terem desrespeitado regras de acessibilidade, o responsável pela referida concessionária de serviço público poderá responder por ato de improbidade administrativa que atenta contra os princípios da administração pública.',
+                options: [
+                    'A) VERDADEIRO',
+                    'B) FALSO'
+                ],
+                answer: 'A',
+                comment: 'Comentários<br>Nesta questão o CESPE buscou cobrar a parte final do Estatuto, que trata das alterações promovidas no ordenamento. No caso, o art.  103, da Lei 13.145/2015, acrescentou o inc. IX ao art. 11 da Lei 8.429/1992 para prever constitui ato de improbidade administrativa que atenta contra os princípios da administração pública qualquer ação ou omissão que deixar de cumprir a exigência de requisitos de acessibilidade previstos na legislação.  Logo, correta a assertiva.<br>Gabarito letra A.'
+            },
+            {
+                question: '9. (CESPE/TJ-CE - 2018) A curatela de pessoa com deficiência é medida protetiva extraordinária',
+                options: [
+                    'A) que impõe aos curadores o dever de representar os curatelados e de prestar semestralmente contas de sua atuação ao juiz.',
+                    'B) incompatível com a nomeação de curador provisório, haja vista a natureza definitiva da curatela.',
+                    'C) que afetará somente os atos relacionados aos direitos de natureza patrimonial e negocial indicados na sentença.',
+                    'D) que poderá ser instituída por iniciativa do próprio interditando, mediante escritura pública, conforme o CPC.',
+                    'E) proporcional às necessidades e às circunstâncias de cada caso, sendo um instituto igual ao da modalidade de decisão apoiada.'
+                ],
+                answer: 'C',
+                comment: 'Comentários <br>Com o advento da Lei n. 13.146/15, o instituto curatela sofreu profundas modificações. Vários artigos do Código Civil foram revogados e o Estatuto da Pessoa com Deficiência passou a ser uma das principais leis a reger o assunto. Segundo o Estatuto, uma das mudanças mais radicais foi a de que a curatela, além de passar a ser considerada expressamente como medida protetiva extraordinária (art. 84, § 3º), passou a afetar tão somente os atos relacionados aos direitos de natureza patrimonial e negocial (art. 85, caput), não alcançando, por exemplo, o direito ao próprio corpo, à sexualidade, ao matrimônio, à privacidade, à educação, à saúde, ao trabalho ou ao voto do curatelado (art. 85, § 1º). Além disso, como medida extraordinária que é, devem constar da sentença as razões e motivações de sua definição (art. 85, § 2º). É por este motivo que está correto afirmar que a curatela da pessoa com deficiência é medida protetiva extraordinária que afetará somente os atos relacionados aos direitos de natureza patrimonial e negocial indicados na sentença.<br><br>Assim, a alternativa C está correta e é o gabarito da questão.<br><br>Vejamos as demais alternativas.<br><br>A alternativa A está incorreta. Isso porque a Lei n. 13.146/15 impõe aos curadores o dever de prestar contas anualmente (art. 84, § 4º).<br><br>A alternativa B está incorreta, porque é possível, sim, a nomeação de um curador provisório. Um exemplo é o caso apontado no art. 87, do Estatuto. Confiram:<br><br>Art. 87.  Em casos de relevância e urgência e a fim de proteger os interesses da pessoa com deficiência em situação de curatela, será lícito ao juiz, ouvido o Ministério Público, de ofício ou a requerimento do interessado, nomear, desde logo, curador provisório, o qual estará sujeito, no que couber, às disposições do Código de Processo Civil.<br><br>A alternativa D está incorreta. A curatela não poderá ser instituída por escritura pública. Isso porque seus limites e razões devem ser estipulados em sentença, conforme disciplinam tanto o Estatuto (art. 85, § 2º) quanto o CPC (art. 755).<br><br>A alternativa E está incorreta. A curatela e a tomada de decisão apoiada são institutos diferentes. A tomada de decisão apoiada é o processo pelo qual a pessoa com deficiência elege pelo menos 2 (duas) pessoas idôneas, com as quais mantenha vínculos e que gozem de sua confiança, para prestar-lhe apoio na tomada de decisão sobre atos da vida civil, fornecendo-lhes os elementos e informações necessários para que possa exercer sua capacidade (art. 1783-A, caput, do CC). Ao contrário do que acontece na curatela, aqui, os apoiadores não substituem a vontade do apoiado, mas apenas prestam apoio na sua tomada de decisão.'
+            },
+            {
+                question: '10. (CESPE/TRE-PE - 2017) Acerca do instituto da tomada de decisão apoiada, assinale a opção correta.',
+                options: [
+                    'A) Não é possível ao juiz designar apoiadores em substituição àqueles indicados.',
+                    'B) A curatela não pode substituir a tomada de decisão apoiada, ainda que ocorra planejamento pessoal do beneficiário nesse sentido.',
+                    'C) O beneficiário desse instituto conserva sua capacidade de autodeterminação em relação aos atos da vida civil, salvo aqueles previstos no acordo de tomada de decisão apoiada.',
+                    'D) Tal instituto é aplicável aos casos de pessoas com deficiência que se enquadrem no conceito de relativamente incapazes.',
+                    'E) A decisão tomada por pessoa apoiada é válida contra terceiros, com restrições, ainda que não figure nos limites do acordo.'
+                ],
+                answer: 'C',
+                comment: 'Comentários<br>A alternativa A está incorreta. De acordo com o §8º, do art. 116, da Lei nº 13.146/15, haverá a substituição do apoiador indicado.<br><br>§ 8º Se procedente a denúncia, o juiz destituirá o apoiador e nomeará, ouvida a pessoa apoiada e se for de seu interesse, outra pessoa para prestação de apoio.<br><br>A alternativa B está incorreta, pois não há previsão no sentido de que a adoção de um dos instrumentos protetivos possa obstar o outro. Na realidade, como os dois procedimentos são distintos, se eventualmente houver termo em tomada de decisão apoiada, nada impedirá que o juiz, notando as dificuldades no caso concreto, adote procedimento judicial de curadoria.<br><br>A alternativa C está correta e é o gabarito da questão, uma vez que, de acordo com o art. 1.783-A, §4º, do CC, a decisão tomada por pessoa apoiada terá validade e efeitos sobre terceiros, sem restrições, desde que esteja inserida nos limites do apoio acordado. Logo, os atos que constam do termo, para que sejam válidos, devem ser executados na forma estabelecida no termo. Os demais continuam a ser praticados autonomamente pela pessoa com deficiência.<br><br>A alternativa D está incorreta, pois, na tomada de decisão apoiada, não temos mitigação da capacidade civil, mas apenas um ato de apoio. No caso da curadoria, temos alguma restrição à capacidade civil nos termos fixados em sentença.<br><br>A alternativa E está incorreta. Com base no §4º, do art. 116, do Estatuto da Pessoa com Deficiência, a decisão tomada por pessoa apoiada terá validade e efeitos sobre terceiros, sem restrições, desde que esteja inserida nos limites do apoio acordado.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Função para renderizar uma questão
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    // Impede de selecionar outra resposta se já foi respondida
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = optionBtn.getAttribute('data-letter');
+                        checkAnswer(index);
+                        updateQuizState(); // Habilita o botão Próxima após a resposta
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            // Se a pergunta já foi respondida, exibe o resultado
+            if (userAnswers[index]) {
+                checkAnswer(index, true);
+            }
+            updateQuizState();
+        }
+
+        // Função para verificar a resposta e exibir o resultado/comentário
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswer = userAnswers[index];
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswer && userAnswer.toUpperCase() === correctLetter) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            // Exibe a resposta correta e a do usuário
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true; // Desabilita todos os botões após a resposta
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                if (optionLetter === correctLetter) {
+                    btn.classList.add('correct');
+                }
+                if (optionLetter === userAnswer && optionLetter !== correctLetter) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Exibe a seção de comentário
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        // Função para atualizar os botões de navegação e o contador
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = !!userAnswers[currentQuestionIndex];
+            
+            // O botão "Próxima" só é habilitado se a pergunta atual foi respondida
+            // e não for a última pergunta.
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+
+            // Se for a última pergunta e ela foi respondida, exibe o placar final
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        // Função para mostrar o placar final
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        // Listeners para a navegação
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Inicia o quiz
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
