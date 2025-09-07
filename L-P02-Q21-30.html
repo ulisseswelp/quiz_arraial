@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Legislação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Legislação - Parte 02</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            <!-- Question cards will be injected here by JavaScript -->
+        </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 21 de 30</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        // Array de objetos com as perguntas, opções, respostas corretas e comentários
+        const questions = [
+            {
+                question: '21. (VUNESP/MP-SP - 2018) Em relação aos Direitos das pessoas portadoras de transtornos mentais, com deficiência ou da população em situação de rua, bem como no tocante à igualdade racial ou homofobia, assinale a alternativa correta.',
+                options: [
+                    'A) Apropriar-se de ou desviar bens, proventos, pensão, benefícios, remuneração ou qualquer outro rendimento de pessoa com deficiência tipifica crime apenado com reclusão.',
+                    'B) Discriminação racial ou étnico-racial é toda situação injustificada de diferenciação de acesso e fruição de bens, serviços e oportunidades, nas esferas pública e privada, em virtude de raça, cor, descendência ou origem nacional ou étnica.',
+                    'C) Nos termos da legislação aplicada a pessoas portadoras de transtornos mentais, a internação involuntária é aquela determinada pela Justiça.',
+                    'D) Os registros dos sistemas de informação, de cadastros, de programas, de serviços, de fichas, de formulários, de prontuários e congêneres dos órgãos e das entidades da Administração Pública federal direta, autárquica e fundacional deverão conter o campo “nome social” (designação pela qual a pessoa travesti ou transexual se identifica e é socialmente reconhecida) em destaque, sendo vedada a menção ao nome civil para fins administrativos internos.',
+                    'E) Nos serviços de emergência públicos e privados, a prioridade conferida à pessoa com deficiência pelo Estatuto não pode ser condicionada aos protocolos de atendimento médico'
+                ],
+                answer: 'A',
+                comment: 'Comentários<br>A alternativa A está correta e é o gabarito da questão. De fato, apropriar-se de ou desviar bens, proventos, pensão, benefícios, remuneração ou qualquer outro rendimento de pessoa com deficiência tipifica crime apenado com reclusão. Confiram o conteúdo do art. 89, da Lei n 13.146/15:<br><br>Art. 89. Apropriar-se de ou desviar bens, proventos, pensão, benefícios, remuneração ou qualquer outro rendimento de pessoa com deficiência:<br>Pena - reclusão, de 1 (um) a 4 (quatro) anos, e multa. <br><br>Dica: Só existe um crime na Lei n. 13.146/15 punido com detenção. É o crime do art. 91, vejam:<br><br>Art. 91.  Reter ou utilizar cartão magnético, qualquer meio eletrônico ou documento de pessoa com deficiência destinados ao recebimento de benefícios, proventos, pensões ou remuneração ou à realização de operações financeiras, com o fim de obter vantagem indevida para si ou para outrem:<br>Pena - detenção, de 6 (seis) meses a 2 (dois) anos, e multa.<br><br>Parágrafo único.  Aumenta-se a pena em 1/3 (um terço) se o crime é cometido por tutor ou curador.<br><br>A alternativa B está incorreta. O examinador mistura os conceitos de desigualdade racial e de discriminação racial ou étnico-racial constantes do Estatuto da Igualdade Racial (art. 1º, parágrafo único, I e II). Confiram:<br><br>Parágrafo único.  Para efeito deste Estatuto, considera-se:<br>I - discriminação racial ou étnico-racial: toda distinção, exclusão, restrição ou preferência baseada em raça, cor, descendência ou origem nacional ou étnica que tenha por objeto anular ou restringir o reconhecimento, gozo ou exercício, em igualdade de condições, de direitos humanos e liberdades fundamentais nos campos político, econômico, social, cultural ou em qualquer outro campo da vida pública ou privada;<br>II - desigualdade racial: toda situação injustificada de diferenciação de acesso e fruição de bens, serviços e oportunidades, nas esferas pública e privada, em virtude de raça, cor, descendência ou origem nacional ou étnica;<br><br>A alternativa C está incorreta. O examinador confunde a internação involuntária com a internação compulsória (art. 6º, da Lei n. 10.216/01):<br><br>Art. 6º A internação psiquiátrica somente será realizada mediante laudo médico circunstanciado que caracterize os seus motivos.<br>Parágrafo único. São considerados os seguintes tipos de internação psiquiátrica: <br><br>I - internação voluntária: aquela que se dá com o consentimento do usuário;<br>II - internação involuntária: aquela que se dá sem o consentimento do usuário e a pedido de terceiro; e<br>III - internação compulsória: aquela determinada pela Justiça.<br><br>A alternativa D está incorreta. Segundo o art. 3º do Decreto n. 8.727/2016: <br><br>Art. 3º Os registros dos sistemas de informação, de cadastros, de programas, de serviços, de fichas, de formulários, de prontuários e congêneres dos órgãos e das entidades da administração pública federal direta, autárquica e fundacional deverão conter o campo “nome social” em destaque, acompanhado do nome civil, que será utilizado apenas para fins administrativos internos.<br><br>A alternativa E, por fim, também está incorreta. Segundo a Lei n. 13.146/15 (art. 9º, § 2º): <br><br>§ 2º Nos serviços de emergência públicos e privados, a prioridade conferida por esta Lei é condicionada aos protocolos de atendimento médico.'
+            },
+            {
+                question: '22. (VUNESP/TJ-SP - 2017) Nos termos da Lei Federal n° 13.146/2015, a pessoa com deficiência',
+                options: [
+                    'A) poderá ser obrigada a se submeter a intervenção clínica ou cirúrgica, tratamento ou institucionalização forçada, mediante prévia avaliação biopsicossocial, realizada por equipe multiprofissional e interdisciplinar.',
+                    'B) em situação de curatela, não terá participação na obtenção de consentimento para a prática dos atos da vida civil, pois, em tal circunstância, não possui qualquer capacidade civil.',
+                    'C) está obrigada à fruição de benefícios decorrentes de ação afirmativa, a fim de que sejam construídos ambientes de trabalho acessíveis e inclusivos.',
+                    'D) somente será atendida sem seu consentimento prévio, livre e esclarecido em casos de risco de morte e de emergência em saúde, resguardado seu superior interesse e adotadas as salvaguardas legais cabíveis.',
+                    'E) e seu acompanhante ou atendente pessoal têm direito à prioridade na tramitação processual e nos procedimentos judiciais em que forem partes ou interessados.'
+                ],
+                answer: 'D',
+                comment: 'Comentários<br>A alternativa A está incorreta. De acordo com o caput, do art. 11, da Lei nº 13.146/15, a pessoa com deficiência não poderá ser obrigada a se submeter a intervenção clínica ou cirúrgica, a tratamento ou a institucionalização forçada.<br><br>A alternativa B está incorreta. Com base no caput, do art. 85, da referida Lei, a curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial. Além disso, o §1º estabelece que a definição da curatela não alcança o direito ao próprio corpo, à sexualidade, ao matrimônio, à privacidade, à educação, à saúde, ao trabalho e ao voto.<br><br>A alternativa C está incorreta. O §2º, do art. 4º, do Estatuto da Pessoa com Deficiência, prevê que a pessoa com deficiência não está obrigada à fruição de benefícios decorrentes de ação afirmativa.<br><br>A alternativa D está correta e é o gabarito da questão, pois reproduz o art. 13, da Lei nº 13.146/15:<br><br>Art. 13. A pessoa com deficiência somente será atendida sem seu consentimento prévio, livre e esclarecido em casos de risco de morte e de emergência em saúde, resguardado seu superior interesse e adotadas as salvaguardas legais cabíveis.<br><br>A alternativa E está incorreta. Segundo o art. 9º, §1º, da referida Lei, a pessoa com deficiência e seu acompanhante não têm direito à prioridade na tramitação processual e nos procedimentos judiciais em que forem partes ou interessados.'
+            },
+            {
+                question: '23. (VUNESP/MPE-SP - 2016) Quanto à realização de tratamento, procedimento, hospitalização e pesquisa científica relacionados à pessoa com deficiência, a Lei n° 13.146/2015 estabelece que',
+                options: [
+                    'A) é indispensável o seu consentimento prévio, livre e esclarecido, podendo, no entanto, ser suprido em situação de curatela, na forma da lei.',
+                    'B) é dispensável o seu consentimento, desde que o objetivo a ser alcançado seja para o seu próprio bem-estar.',
+                    'C) se exige o seu prévio e livre consentimento por escrito, não podendo ser suprido mesmo em situação de curatela.',
+                    'D) não se exigirá o seu consentimento pessoal, no caso de pesquisa científica, se os seus pais ou responsáveis legais assim se manifestarem em seu lugar.',
+                    'E) será exigido o seu prévio e livre consentimento apenas para a hipótese de pesquisa científica, podendo ser dispensado nos demais casos.'
+                ],
+                answer: 'A',
+                comment: 'Comentários<br>De acordo com o art. 12, do Estatuto da Pessoa com Deficiência, quanto à realização de tratamento, de procedimento, de hospitalização e de pesquisa científica relacionados à pessoa com deficiência é indispensável o seu consentimento prévio, livre e esclarecido, podendo, no entanto, ser suprido em situação de curatela.<br><br>Art. 12. O consentimento prévio, livre e esclarecido da pessoa com deficiência é indispensável para a realização de tratamento, procedimento, hospitalização e pesquisa científica.<br>§ 1º Em caso de pessoa com deficiência em situação de curatela, deve ser assegurada sua participação, no maior grau possível, para a obtenção de consentimento.<br>§ 2º A pesquisa científica envolvendo pessoa com deficiência em situação de tutela ou de curatela deve ser realizada, em caráter excepcional, apenas quando houver indícios de benefício direto para sua saúde ou para a saúde de outras pessoas com deficiência e desde que não haja outra opção de pesquisa de eficácia comparável com participantes não tutelados ou curatelados.<br><br>Assim, a alternativa A está correta e é o gabarito da questão.'
+            },
+            {
+                question: '24. (FGV/DPE-RS – 2023) Serafim assumiu o cargo de defensor público em uma cidade do interior do Brasil. Para se locomover, ele necessita fazer uso de cadeira de rodas, e, ao chegar ao Fórum da cidade, descobriu que não havia rampas para acesso às dependências do edifício. Ao solicitar ajuda, foi-lhe informado que a sala de audiências fica no terceiro andar. Não há elevador e as escadas são estreitas, impedindo o trânsito da cadeira de rodas. Tendo em vista situações como essa, o Estatuto da Pessoa com Deficiência preconiza que:',
+                options: [
+                    'A) somente os Fóruns das capitais são obrigados a oferecer acessibilidade para pessoas com deficiência;',
+                    'B) o poder público deve assegurar o acesso da pessoa com deficiência à justiça, em igualdade de oportunidades com as demais pessoas;',
+                    'C) a Prefeitura da cidade deve iniciar obras de acessibilidade imediatamente, e o trabalho será realizado na modalidade remota durante as obras;',
+                    'D) as audiências serão transferidas para o andar térreo até que as condições de acessibilidade sejam providenciadas;',
+                    'E) a pessoa com deficiência deverá ser transferida para trabalhar em local onde haja acessibilidade.'
+                ],
+                answer: 'B',
+                comment: 'Comentários<br>A alternativa B está correta e é o gabarito da questão. Vejamos o que está previsto no caput do art. 79, do Estatuto da Pessoa com Deficiência: <br><br>Art. 79. O poder público deve assegurar o acesso da pessoa com deficiência à justiça, em igualdade de oportunidades com as demais pessoas, garantindo, sempre que requeridos, adaptações e recursos de tecnologia assistiva.<br><br>Serafim, na condição de Defensor Público que necessita fazer uso de cadeira de rodas para se locomover, possui o direito de ter assegurado seu acesso à justiça em igualdade de oportunidades com as demais pessoas.  <br><br>As alternativas A, C, D e E estão incorretas, pois não encontram correspondência no Estatuto da Pessoa com Deficiência.'
+            },
+            {
+                question: '25. (FGV/TJ CE - 2019) O Estatuto da Pessoa com Deficiência (Lei nº 13.146/15) dispõe que a pessoa com deficiência tem assegurado o direito ao exercício de sua capacidade legal em igualdade de condições com as demais pessoas.<br><br>Nesse sentido, o citado diploma normativo estabelece que:',
+                options: [
+                    'A) a curatela de pessoa com deficiência será a mais ampla possível, não se limitando a afetar tão somente os atos relacionados aos direitos de natureza patrimonial e negocial.',
+                    'B) a definição de curatela de pessoa com deficiência constitui medida protetiva ordinária e durará o maior tempo possível.',
+                    'C) a pessoa com deficiência não poderá ser submetida à curatela, em qualquer hipótese.',
+                    'D) a situação de curatela da pessoa com deficiência será exigida para emissão de documentos oficiais.',
+                    'E) à pessoa com deficiência é facultada a adoção de processo de tomada de decisão apoiada.'
+                ],
+                answer: 'E',
+                comment: 'Comentários<br>A alternativa A está incorreta. Nos termos do caput do art. 85 da Lei nº 13.146/2015: "A curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial."<br><br>A alternativa B está incorreta. De acordo com o §3º do art. 84 do Estatuto: "A definição de curatela de pessoa com deficiência constitui medida protetiva extraordinária, proporcional às necessidades e às circunstâncias de cada caso, e durará o menor tempo possível."<br><br>A alternativa C está incorreta. O art. 84 do Estatuto, em seu §1º, estabelece que, quando necessário, a pessoa com deficiência será submetida à curatela.<br><br>A alternativa D está incorreta. O Estatuto prevê o oposto no art. 86: "Para emissão de documentos oficiais, não será exigida a situação de curatela da pessoa com deficiência."<br><br>A alternativa E está correta e é o gabarito da questão. Trata-se do previsto no §2º do art. 84 do Estatuto da Pessoa com Deficiência (Lei nº 13.146/2015): "É facultado à pessoa com deficiência a adoção de processo de tomada de decisão apoiada."'
+            },
+            {
+                question: '26. (FGV/MPE RJ - 2019) O Município Alfa, apesar dos constantes apelos formulados pela Associação das Pessoas com Deficiência, não vinha oferecendo, nas escolas públicas, mecanismos de tecnologia assistiva aos alunos com deficiência. Com o objetivo de obter uma solução para o problema, a referida Associação procurou a Promotoria de Justiça de tutela coletiva da Comarca e solicitou a adoção das medidas adequadas.<br>À luz da referida narrativa e do disposto na Lei nº 13.146/2015, o órgão de execução concluiu que o oferecimento de mecanismos da referida espécie:',
+                options: [
+                    'A) era facultativo, tendo por objetivo aumentar o conforto das pessoas com deficiência, o que impedia a atuação do Ministério Público;',
+                    'B) tinha como objetivo promover a igualdade das pessoas com deficiência, e a ausência de oferta na situação narrada justifica a atuação do Ministério Público;',
+                    'C) estava sujeito à discrição política do Município, que somente era obrigado a assegurar a acessibilidade dos alunos com deficiência, não investir em tecnologia;',
+                    'D) era obrigatório, promovendo a igualdade das pessoas com deficiência, mas o Ministério Público não poderia atuar, já que a lei conferia legitimidade à Associação;',
+                    'E) somente poderia ser exigido do Poder Público se as técnicas de desenho universal não fossem suficientes, tendo o Ministério Público e a Associação legitimidade para atuar.'
+                ],
+                answer: 'B',
+                comment: 'Comentários<br>A alternativa B está correta e é o gabarito da questão. Vejamos o inciso XII do art. 28 e o §3º do art. 79 do Estatuto da Pessoa com Deficiência:<br><br>Art. 28. Incumbe ao poder público assegurar, criar, desenvolver, implementar, incentivar, acompanhar e avaliar:<br>XII - oferta de ensino da Libras, do Sistema Braille e de uso de recursos de tecnologia assistiva, de forma a ampliar habilidades funcionais dos estudantes, promovendo sua autonomia e participação.<br><br>Art. 79. § 3º A Defensoria Pública e o Ministério Público tomarão as medidas necessárias à garantia dos direitos previstos nesta Lei.<br><br>Quanto à atuação da associação, importante destacar a modificação legislativa no art. 3º da Lei nº 7.853/89:<br>"As medidas judiciais destinadas à proteção de interesses coletivos, difusos, individuais homogêneos e individuais indisponíveis da pessoa com deficiência poderão ser propostas pelo Ministério Público, pela Defensoria Pública, pela União, pelos Estados, pelos Municípios, pelo Distrito Federal, por associação constituída há mais de 1 (um) ano, nos termos da lei civil, por autarquia, por empresa pública e por fundação ou sociedade de economia mista que inclua, entre suas finalidades institucionais, a proteção dos interesses e a promoção de direitos da pessoa com deficiência." Nota-se, assim, que as associações são legitimadas à proteção dos direitos das pessoas com deficiência, desde que cumprido o requisito temporal de 1 ano de constituição - informação não fornecida pelo comando da questão.<br><br>As alternativas A, C, D e E estão incorretas pois não apresentam o adequado tratamento legal à situação hipotética apresentada.'
+            },
+            {
+                question: '27. (FGV/TJ-RS - 2020) João, de forma livre e consciente, por meio de publicação de texto e foto no site X e em sua rede social Y, ambos abertos ao público na internet, praticou, induziu e incitou discriminação de Maria em razão de sua deficiência, consistente em tetraplegia.<br><br>Consoante dispõe a Lei n. 13.146 de 2015, João praticou crime:',
+                options: [
+                    'A) de menor potencial ofensivo, fazendo jus à transação penal, caso preenche os requisitos subjetivos previstos na lei, como não ter sido beneficiado anteriormente, no prazo de 5 (cinco) anos, pela aplicação de pena restritiva ou multa;',
+                    'B) de difamação prevista no Código Penal, com aumento de pena por ser a vítima pessoa com deficiência, sendo possível a retratação até o recebimento da denúncia e condicionada à composição civil dos danos;',
+                    'C) de calúnia previsto no Código Penal, com aumento de pena por ser a vítima pessoa com deficiência, sendo possível a retratação antes da sentença e condicionada à exclusão dos textos e fotos na internet;',
+                    'D) previsto no Estatuto Da Pessoa Com Deficiência, e o juiz poderá determinar, sob pena de desobediência, a interdição das respectivas mensagens ou páginas informação na internet;',
+                    'E) previsto na lei brasileira de inclusão da Pessoa com deficiência e com pena de reclusão de 1 (um) a 2 (dois) anos e multa, sem prejuízo da reparação pelos danos extrapatrimoniais sofridos pela vítima.'
+                ],
+                answer: 'D',
+                comment: 'Comentários<br>A alternativa D está correta e é o gabarito da questão, nos termos do art. 88, §§2º e 3º, da Lei nº 13.146/15:<br><br>Art. 88. Praticar, induzir ou incitar discriminação de pessoa em razão de sua deficiência:<br>§ 2º Se qualquer dos crimes previstos no caput deste artigo é cometido por intermédio de meios de comunicação social ou de publicação de qualquer natureza:<br>Pena - reclusão, de 2 (dois) a 5 (cinco) anos, e multa.<br>§ 3º Na hipótese do § 2º deste artigo, o juiz poderá determinar, ouvido o Ministério Público ou a pedido deste, ainda antes do inquérito policial, sob pena de desobediência:<br>II - interdição das respectivas mensagens ou páginas de informação na internet.'
+            },
+            {
+                question: '28. (AOCP/TRF2 - 2024) O Estatuto da Pessoa com Deficiência (Lei nº 13.146/2015) destina-se a assegurar e a promover, em condições de igualdade, o exercício dos direitos e das liberdades fundamentais por pessoa com deficiência, visando à sua inclusão social e cidadania. Nesse contexto, acerca de tal diploma normativo, assinale a alternativa correta.',
+                options: [
+                    'A) A definição de curatela de pessoa com deficiência constitui medida protetiva extraordinária, proporcional às necessidades e às circunstâncias de cada caso, e durará o menor tempo possível.',
+                    'B) Quando necessário, a pessoa com deficiência será submetida à curatela, a qual afeta os atos relacionados aos direitos de natureza patrimonial e matrimonial, bem como o direito à privacidade do curatelado.',
+                    'C)  Os serviços notariais e de registro não podem negar ou criar óbices ou condições diferenciadas à prestação de seus serviços em razão de deficiência do solicitante, devendo reconhecer sua capacidade legal limitada, mas garantindo a plena acessibilidade.',
+                    'D) O consentimento prévio, livre e esclarecido da pessoa com deficiência é prescindível para a realização de tratamento, procedimento e hospitalização.',
+                    'E) À pessoa com deficiência internada ou em observação é assegurado o direito a acompanhante ou a atendente pessoal, devendo o órgão ou a instituição de saúde proporcionar condições adequadas para sua permanência ao menos durante o repouso noturno.'
+                ],
+                answer: 'A',
+                comment: 'Comentários <br>A alternativa A é correta e é o gabarito da questão. A curatela é uma medida extraordinária e só deve durar tempo o suficiente até a retomada da plena capacidade por parte da pessoa com deficiência:<br><br>Art. 85. [...]<br>§ 2º A curatela constitui medida extraordinária, devendo constar da sentença as razões e motivações de sua definição, preservados os interesses do curatelado. <br><br>A alternativa B é incorreta. A curatela só afeta o exercício de direitos patrimoniais e negociais. Matrimoniais não:<br><br>Art. 85. A curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial.<br><br>A alternativa C é incorreta. Deve-se reconhecer a capacidade legal plena, com garantia de acessibilidade:<br><br>Art. 83. Os serviços notariais e de registro não podem negar ou criar óbices ou condições diferenciadas à prestação de seus serviços em razão de deficiência do solicitante, devendo reconhecer sua capacidade legal plena, garantida a acessibilidade.<br><br>A alternativa D é incorreta. Na verdade, é indispensável o consentimento prévio, livre e esclarecido para a realização de tratamento de saúde:<br><br>Art. 12. O consentimento prévio, livre e esclarecido da pessoa com deficiência é indispensável para a realização de tratamento, procedimento, hospitalização e pesquisa científica.<br><br>A alternativa E é incorreta. Deve-se assegurar a permanência em tempo integral:<br><br>Art. 22. À pessoa com deficiência internada ou em observação é assegurado o direito a acompanhante ou a atendente pessoal, devendo o órgão ou a instituição de saúde proporcionar condições adequadas para sua permanência em tempo integral.'
+            },
+            {
+                question: '29. (AOCP/TRF2 - 2024) Sobre o Estatuto da Pessoa com Deficiência (Lei nº 13.146/2015), assinale a alternativa correta.',
+                options: [
+                    'A) Considera-se pessoa com deficiência aquela que tem impedimento de curto ou longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.',
+                    'B) Nos serviços de emergência públicos e privados, a prioridade conferida pela Lei nº 13.146/2015 não se condiciona aos protocolos de atendimento médico.',
+                    'C) É assegurado à pessoa com deficiência que não possua meios para prover sua subsistência nem de tê-la provida por sua família o benefício mensal de um salário-mínimo, nos termos da Lei Orgânica da Assistência Social.',
+                    'D) Nos teatros, cinemas, auditórios e similares, como contrapartida aos gastos realizados com acessibilidade, é permitido que o valor do ingresso da pessoa com deficiência seja superior ao valor cobrado das demais pessoas.',
+                    'E) Para emissão de documentos oficiais, será exigida a situação de curatela da pessoa com deficiência.'
+                ],
+                answer: 'C',
+                comment: 'Comentários<br>A alternativa A é incorreta. Para que se considere como pessoa com deficiência, é necessário que o impedimento seja de longo prazo, conforme o art. 2º do Estatuto da Pessoa com Deficiência:<br><br>Art. 2º Considera-se pessoa com deficiência aquela que tem impedimento de longo prazo de natureza física, mental, intelectual ou sensorial, o qual, em interação com uma ou mais barreiras, pode obstruir sua participação plena e efetiva na sociedade em igualdade de condições com as demais pessoas.<br><br>A alternativa B é incorreta. A prioridade é condicionada aos protocolos de atendimento médico:<br><br>Art. 9º. [...] <br>§ 2º Nos serviços de emergência públicos e privados, a prioridade conferida por esta Lei é condicionada aos protocolos de atendimento médico.<br><br>A alternativa C é correta e é o gabarito da questão. Assegura-se benefício de prestação continuada no valor de um salário-mínimo à pessoa com deficiência que não possua meios de prover sua subsistência ou de a ter provida por sua família:<br><br>Art. 40. É assegurado à pessoa com deficiência que não possua meios para prover sua subsistência nem de tê-la provida por sua família o benefício mensal de 1 (um) salário-mínimo, nos termos da Lei nº 8.742, de 7 de dezembro de 1993 .<br><br>A alternativa D é incorreta. Não se admite a cobrança de valor do ingresso superior por parte das pessoas com deficiência, ainda que meios de adaptação dos locais devam ser implementados:<br><br>Art. 44. [...]<br>§ 7º O valor do ingresso da pessoa com deficiência não poderá ser superior ao valor cobrado das demais pessoas.<br><br>A alternativa E é incorreta. A emissão de documentos oficiais não pode ser condicionada à curatela:<br><br>Art. 86. Para emissão de documentos oficiais, não será exigida a situação de curatela da pessoa com deficiência.'
+            },
+            {
+                question: '30. (AOCP/TRT1ªR - 2018) Antônio é pessoa com deficiência moderada e recebe o benefício de prestação continuada previsto no art. 20 da Lei n° 8.742/1993. Acontece que Antônio passou a exercer atividade remunerada que o enquadra como segurado obrigatório do RGPS (Regime Geral de Previdência Social). Nesse caso, de acordo com o previsto na Lei n° 13.146/2015, Antônio',
+                options: [
+                    'A) não terá direito a qualquer auxílio, já que passou a exercer atividade remunerada.',
+                    'B) terá direito a auxílio-inclusão, nos termos da lei.',
+                    'C) não terá direito a auxílio inclusão, já que acumulará seu benefício de prestação continuada com a remuneração de sua atividade.',
+                    'D) terá direito a auxílio inclusão, desde que opte por não se submeter ao Regime Geral de Previdência Social.',
+                    'E) terá direito a cumular metade de seu benefício de prestação continuada com a remuneração de sua atividade.'
+                ],
+                answer: 'B',
+                comment: 'Comentários<br>A questão cobra a relação entre o auxílio-inclusão (art. 94, da Lei n. 13.146/15) e o benefício de prestação continuada (art. 20, da Lei n. 8.742/93). Segundo a lei, o auxílio-inclusão será devido à pessoa com deficiência, moderada ou grave que (i) receba o benefício da prestação continuada e passe a exercer atividade remunerada que a enquadre como segurado obrigatório do RGPS, ou (ii) tenha recebido nos últimos 5 (cinco) anos, o benefício de prestação continuada e que exerça atividade remunerada que a enquadre como segurado obrigatório do RGPS. Vejamos:<br><br>A alternativa A está incorreta. O fato de Antônio ter passado a exercer atividade remunerada, por si só, não é suficiente para impedir o seu direito ao auxílio, pelo contrário, de acordo com a disposição expressa do art. 94, I, da Lei n. 13.146/15:<br><br>Art. 94. Terá direito a auxílio-inclusão, nos termos da lei, a pessoa com deficiência moderada ou grave que:<br>I - receba o benefício de prestação continuada previsto no art. 20 da Lei no 8.742, de 7 de dezembro de 1993, e que passe a exercer atividade remunerada que a enquadre como segurado obrigatório do RGPS;<br><br>A alternativa B está correta e é o gabarito da questão. Pelos mesmos motivos expostos na alternativa A, Antônio terá direito ao auxílio-inclusão, nos termos do art. 94, I, da Lei n. 13.146/15.<br><br>A alternativa C está incorreta, já que, como já vimos, Antônio terá direito ao auxílio-inclusão, nos termos do art. 94, I.<br><br>A alternativa D está incorreta. Não existe, na lei, a necessidade de se optar por não se submeter ao RGPS como requisito para a obtenção do auxílio. Ao contrário, é necessário que a atividade remunerada desempenhada enquadre o beneficiário como segurado obrigatório do RGPS.<br><br>E a alternativa E, por fim, está incorreta. Também não existe previsão legal que diga respeito a metade do benefício de prestação continuada cumulada com a remuneração do beneficiário.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Função para renderizar uma questão
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    // Impede de selecionar outra resposta se já foi respondida
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = optionBtn.getAttribute('data-letter');
+                        checkAnswer(index);
+                        updateQuizState(); // Habilita o botão Próxima após a resposta
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            // Se a pergunta já foi respondida, exibe o resultado
+            if (userAnswers[index]) {
+                checkAnswer(index, true);
+            }
+            updateQuizState();
+        }
+
+        // Função para verificar a resposta e exibir o resultado/comentário
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswer = userAnswers[index];
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswer && userAnswer.toUpperCase() === correctLetter) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            // Exibe a resposta correta e a do usuário
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true; // Desabilita todos os botões após a resposta
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                if (optionLetter === correctLetter) {
+                    btn.classList.add('correct');
+                }
+                if (optionLetter === userAnswer && optionLetter !== correctLetter) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Exibe a seção de comentário
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        // Função para atualizar os botões de navegação e o contador
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = !!userAnswers[currentQuestionIndex];
+            
+            // O botão "Próxima" só é habilitado se a pergunta atual foi respondida
+            // e não for a última pergunta.
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1+20} de ${questions.length+20}`;
+
+            // Se for a última pergunta e ela foi respondida, exibe o placar final
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        // Função para mostrar o placar final
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        // Listeners para a navegação
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Inicia o quiz
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
