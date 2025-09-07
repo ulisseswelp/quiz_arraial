@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Legislação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+            width: 100%;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #e0e7ff;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option-button:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #c7d2fe;
+        }
+
+        .option-button.selected {
+            background-color: #a5b4fc;
+            border-color: #4f46e5;
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .option-button.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            font-weight: 700;
+        }
+
+        .option-button.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            font-weight: 700;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #4f46e5;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 1rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        #final-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center p-8">
+
+    <div class="quiz-container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Quiz de Legislação - Parte 02</h1>
+
+        <div id="quiz-area" class="flex flex-col gap-8">
+            <!-- Question cards will be injected here by JavaScript -->
+        </div>
+
+        <div id="navigation" class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="nav-button" disabled>Anterior</button>
+            <span id="question-counter" class="text-gray-600 font-semibold">Questão 11 de 20</span>
+            <button id="next-btn" class="nav-button" disabled>Próxima</button>
+        </div>
+
+        <div id="final-score" class="text-center hidden"></div>
+        <button id="restart-btn" class="nav-button mx-auto hidden mt-4">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        // Array de objetos com as perguntas, opções, respostas corretas e comentários
+        const questions = [
+            {
+                question: '11. (CESPE/TRE-PE - 2017) Com relação aos crimes, às infrações administrativas e às disposições finais e transitórias previstos no EPD, assinale a opção correta.',
+                options: [
+                    'A) Constitui crime a conduta de obstar o acesso da pessoa com deficiência a cargo ou emprego público, ainda que com base em critério restritivo e objetivo previamente definido em lei.',
+                    'B) Na tipificação da conduta de praticar, induzir ou incitar discriminação de pessoa em razão da deficiência, é admitida a tentativa.',
+                    'C) O sujeito passivo dos crimes previstos no EPD é sempre a pessoa com deficiência.',
+                    'D) Para a consumação do crime de desviar bens da pessoa com deficiência, exige-se o efetivo lucro do agente.',
+                    'E) Admitem-se tanto a modalidade dolosa quanto a culposa no caso do delito de abandono da pessoa com deficiência, que é crime permanente.'
+                ],
+                answer: 'C',
+                comment: 'Comentários<br>A alterativa A está incorreta. Além de não prever a conduta como crime na legislação, o entendimento consolidado na jurisprudência é no sentido de que os requisitos para a ocupação de cargos oferecidos em concurso público devem estar previstos em lei. Logo, tal distinção, desde que prevista em lei, além de não constituir crime é conduta legal. Confira, a título ilustrativo, a jurisprudência do STJ (RMS 24.969/MS, Rel. Ministro Napoleão Nunes Maia Filho, 5ª Turma, DJe 20/10/2008):<br><br>RECURSO ORDINÁRIO EM MANDADO DE SEGURANÇA. CONCURSO PÚBLICO. SOLDADO DA POLÍCIA MILITAR DO ESTADO DO MATO GROSSO DO SUL. INDEFERIMENTO DA MATRÍCULA NO CURSO DE FORMAÇÃO. NÃO APRESENTAÇÃO DA CARTEIRA DE HABILITAÇÃO DE VEÍCULO AUTOMOTOR. EXIGÊNCIA EDITALÍCIA PREVISTA NA LEI COMPLEMENTAR 53/90 DO ESTADO DO MATO GROSSO DO SUL, COMPLEMENTADA PELO DECRETO 9.954/00. RECURSO DESPROVIDO. (...) 3.   A definição dos critérios utilizados para se alcançar o perfil do candidato a cargo público, de acordo com as atividades que serão exercidas, é feita de forma discricionária pela Administração, que, com base na oportunidade e conveniência do momento, estabelece as diretrizes a serem seguidas na escolha dos postulantes; tais requisitos, porém, devem ser estabelecidos em estrita consideração com as funções a serem futuramente exercidas pelo Servidor, sob pena de serem considerados discriminatórios e violadores dos princípios da igualdade e da impessoalidade. 4.   Em virtude do princípio da legalidade previsto no art. 37 da CF, os requisitos para investidura em cargo público devem estar previstos em lei (em sentido amplo), que abrange todas as espécies normativas do artigo 59 da Constituição Federal. 5. Recurso ordinário desprovido.<br><br>A alternativa B está incorreta, pois não há previsão da forma tentada na Lei nº 13.146/2015.<br><br>A alternativa C é a correta e gabarito da questão. Se você verificar os arts. 88 a 91 do Estatuto, verá que são crimes específicos praticados contra pessoas com deficiência, sujeito passivo das condutas descritas.<br><br>A alternativa D também está incorreta, pois o art. 89 dispõe que constitui crime a conduta de “apropriar-se de ou desviar bens, proventos, pensão, benefícios, remuneração ou qualquer outro rendimento de pessoa com deficiência”. Não há qualquer referência à obtenção de lucro.<br><br>Por fim, a alternativa E está incorreta, pois o art. 90 prevê, no caput, a modalidade dolosa e, no §3º, estabelece a modalidade de crime por omissão em razão do devedor de agir quando descreve que “na mesma pena incorre quem não prover as necessidades básicas de pessoa com deficiência quando obrigado por lei ou mandado”. Não há, portanto, cabimento na forma culposa, como mencionado.'
+            },
+            {
+                question: '12. (CESPE/Câmara dos Deputados - 2014) Julgue o item que segue, relativo aos crimes contra as pessoas com deficiência, aos crimes resultantes de preconceito de raça ou de cor e ao Estatuto da Igualdade Racial.<br>Se um motorista de ônibus, veículo coletivo de transporte público, deixar de transportar deficiente físico que esperava na parada, sob a justificativa de que seu ônibus não possui o equipamento adequado para que o deficiente possa adentrar no veículo sem riscos, tal fato constituirá crime específico previsto na legislação que regulamenta os direitos da pessoa deficiente e estabelece penas para as situações em que eles sejam descumpridos.',
+                options: [
+                    'A) VERDADEIRO',
+                    'B) FALSO'
+                ],
+                answer: 'B',
+                comment: 'Comentários<br>De acordo com o art. 9º, IV, da Lei nº 13.146/15, a pessoa com deficiência tem direito a receber atendimento prioritário no transporte coletivo de passageiros e ter garantia de segurança no embarque e no desembarque.<br>Art. 9o A pessoa com deficiência tem direito a receber atendimento prioritário, sobretudo com a finalidade de:<br>IV - disponibilização de pontos de parada, estações e terminais acessíveis de transporte coletivo de passageiros e garantia de segurança no embarque e no desembarque;<br><br>Porém, embora a lei determine que os veículos devam ser acessíveis, a prioridade é a segurança da pessoa com deficiência, assim, se justifica a negativa de embarque do passageiro se sua presença no veículo puder ocasionar danos à sua integridade física.<br><br>De todo modo, não há crime previsto para essa conduta no Estatuto da Pessoa com Deficiência.<br><br>Desse modo, a assertiva está incorreta. Gabarito letra B.'
+            },
+            {
+                question: '13. (CESPE/TRE-BA - 2017) Comprovado que o tutor havia desviado proventos de pessoa deficiente cuja tutela exercia, o juiz proferiu sentença condenando-o a um ano de reclusão. For certificado que houve erro na sentença proferida.<br><br>Nessa situação, o erro da sentença decorre',
+                options: [
+                    'A) do fato de a pena prevista para o delito ser detenção e multa.',
+                    'B) da não aplicação da multa de pelo menos o dobro do proveito obtido.',
+                    'C) unicamente da não inclusão da pena de multa.',
+                    'D) da não aplicação da causa de aumento de pena e da multa.',
+                    'E) do fato de a condenação ter sido superior ao mínimo legal.'
+                ],
+                answer: 'D',
+                comment: 'Comentários<br>Essa questão é complexa, e cobra tema específico da Lei nº 13.146/2015. Na parte final do Estatuto da Pessoa com Deficiência, temos a disciplina de alguns crimes específicos, praticados contra as pessoas com deficiência. Entre eles, o art. 89:<br>Art. 89.  Apropriar-se de ou desviar bens, proventos, pensão, benefícios, remuneração ou qualquer outro rendimento de pessoa com deficiência:<br>Pena - reclusão, de 1 (um) a 4 (quatro) anos, e multa.<br><br>Parágrafo único.  Aumenta-se a pena em 1/3 (um terço) se o crime é cometido:<br>I - por tutor, curador, síndico, liquidatário, inventariante, testamenteiro ou depositário judicial; ou (...)<br><br>Note, portanto, que do trecho citado temos uma regra que prevê a penalização de reclusão de um a quatro anos mais multa para aquele que praticar crime de apropriação indevida ou desvio de bens, proventos, pensão, benefício ou remuneração da pessoa com deficiência.<br>Contudo, essa regra do caput deve ser lida juntamente com o parágrafo único que prevê que, se o agente for tutor, tal como no enunciado da questão, a pena será aumentada em 1/3. Logo, no caso do enunciado, a pena não poderá ser fixada em um ano de reclusão, o que torna a alternativa D correta e gabarito.'
+            },
+            {
+                question: '14. (CESPE/TRE-TO - 2017) Tipifica-se como crime contra a pessoa deficiente, com a penalidade de detenção,',
+                options: [
+                    'A) o desvio de seus bens com o propósito de alcançar vantagem indevida para si.',
+                    'B) o seu abandono em hospitais ou entidades de abrigamento.',
+                    'C) a utilização, para obtenção de vantagem indevida, de seu cartão magnético destinado ao recebimento de pensão.',
+                    'D) a apropriação de seus bens patrimoniais para a consecução de vantagem indevida para terceiros.',
+                    'E) a incitação de discriminação em razão de sua deficiência.'
+                ],
+                answer: 'C',
+                comment: 'Comentários<br>As alternativas A, B, D e E estão incorretas, pois são crimes contra a pessoa com deficiência, com a penalidade de reclusão, e não detenção. Vejamos os arts. 88, 89 e 90, do Estatuto da Pessoa com Deficiência:<br><br>Art. 88.  Praticar, induzir ou incitar discriminação de pessoa em razão de sua deficiência:<br>Pena - reclusão, de 1 (um) a 3 (três) anos, e multa.<br><br>Art. 89.  Apropriar-se de ou desviar bens, proventos, pensão, benefícios, remuneração ou qualquer outro rendimento de pessoa com deficiência:<br>Pena - reclusão, de 1 (um) a 4 (quatro) anos, e multa.<br><br>Art. 90.  Abandonar pessoa com deficiência em hospitais, casas de saúde, entidades de abrigamento ou congêneres: <br>Pena - reclusão, de 2 (dois) a 5 (cinco) anos, e multa. (Redação dada pela Lei nº 15.163, de 2025) <br><br>Parágrafo único.  (Revogado).    (Redação dada pela Lei nº 15.163, de 2025).<br>§ 1º Se do abandono resulta lesão corporal de natureza grave: (Incluído pela Lei nº 15.163, de 2025)<br>Pena - reclusão, de 3 (três) a 7 (sete) anos, e multa. (Incluído pela Lei nº 15.163, de 2025)<br><br>§ 2º Se do abandono resulta morte: (Incluído pela Lei nº 15.163, de 2025)<br>Pena - reclusão, de 8 (oito) a 14 (quatorze) anos, e multa. (Incluído pela Lei nº 15.163, de 2025)<br><br>§ 3º Nas mesmas penas incorre quem não prover as necessidades básicas de pessoa com deficiência quando obrigado por lei ou mandado. (Incluído pela Lei nº 15.163, de 2025) <br><br>A alternativa C é correta e gabarito da questão. De acordo com o art. 91, da Lei nº 13.146/15, a utilização de cartão magnético destinado ao recebimento de pensão, para obtenção de vantagem indevida, é crime punível de detenção.<br><br>Art. 91.  Reter ou utilizar cartão magnético, qualquer meio eletrônico ou documento de pessoa com deficiência destinados ao recebimento de benefícios, proventos, pensões ou remuneração ou à realização de operações financeiras, com o fim de obter vantagem indevida para si ou para outrem:<br>Pena - detenção, de 6 (seis) meses a 2 (dois) anos, e multa.'
+            },
+            {
+                question: '15. (CESPE/STM - 2018) Considerando o disposto no Estatuto da Pessoa com Deficiência e na Resolução CNJ n.º 230/2016, julgue o item a seguir.<br><br>Os serviços notariais e de registro podem criar condições diferenciadas para a prestação de serviços em razão de deficiência do solicitante.',
+                options: [
+                    'A) VERDADEIRO',
+                    'B) FALSO'
+                ],
+                answer: 'B',
+                comment: 'Comentários<br>A assertiva está incorreta. De acordo com o art. 83, caput, da Lei nº 13.146/15, os serviços notariais e de registro NÃO podem negar ou criar óbices ou condições diferenciadas à prestação de seus serviços em razão de deficiência do solicitante, devendo reconhecer sua capacidade legal plena, garantida a acessibilidade. Gabarito letra B.'
+            },
+            {
+                question: '16. (CESPE/STJ - 2018) Com base no Estatuto da Pessoa com Deficiência e na Resolução CNJ n.º 230/2016, julgue o item que se segue.<br>A pessoa com deficiência e sob curatela assiste o direito ao matrimônio.',
+                options: [
+                    'A) VERDADEIRO',
+                    'B) FALSO'
+                ],
+                answer: 'A',
+                comment: 'Comentários<br>A questão está correta. Como sabemos, a pessoa sob curatela sofre limitações apenas quanto aos direitos de natureza patrimonial e negocial. Dessa forma, poderá casar-se normalmente. Vejamos o que dispõe o art. 85, caput e §1º, do Estatuto da Pessoa com Deficiência:<br><br>Art. 85.  A curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial.<br><br>§ 1º A definição da curatela não alcança o direito ao próprio corpo, à sexualidade, ao matrimônio, à privacidade, à educação, à saúde, ao trabalho e ao voto.<br><br>Gabarito: A.'
+            },
+            {
+                question: '17. (CESPE/EBSERH - 2018) Acerca do Estatuto da Pessoa com Deficiência, julgue o item que se segue.<br><br>A pena prevista para quem discriminar pessoa em razão de sua deficiência será a mesma se o ato ocorrer por intermédio de meios de comunicação social ou não.',
+                options: [
+                    'A) VERDADEIRO',
+                    'B) FALSO'
+                ],
+                answer: 'B',
+                comment: 'Comentários<br>A assertiva está incorreta, pois as penas são distintas. Veja o que estabelece o art. 88, caput e §2º, da Lei nº 13.146/15:<br><br>Art. 88.  Praticar, induzir ou incitar discriminação de pessoa em razão de sua deficiência<br>Pena - reclusão, de 1 (um) a 3 (três) anos, e multa.<br><br>§ 2º Se qualquer dos crimes previstos no caput deste artigo é cometido por intermédio de meios de comunicação social ou de publicação de qualquer natureza: <br>Pena - reclusão, de 2 (dois) a 5 (cinco) anos, e multa. <br><br>Gabarito: B.'
+            },
+            {
+                question: '18. (CESPE/TRT-7ªR - 2017) Se um indivíduo de vinte e um anos de idade sofrer acidente que lhe cause deficiência física e o leve a ser submetido à curatela, nos termos da Lei n.º 13.146/2015, a curatela alcançará os atos de natureza',
+                options: [
+                    'A) trabalhista.',
+                    'B) matrimonial.',
+                    'C) educacional.',
+                    'D) negocial.'
+                ],
+                answer: 'D',
+                comment: 'Comentários<br>A alternativa D está correta e é o gabarito da questão. O art. 85, caput, da Lei nº 13.146/15, estabelece que a curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial.'
+            },
+            {
+                question: '19. (VUNESP/TJSP – 2023) A pessoa com deficiência tem assegurado o direito ao exercício de sua capacidade legal em igualdade de condições com as demais pessoas. No entanto, quando necessário, a pessoa com deficiência será submetida à curatela, conforme a lei.<br><br>Acerca do tema, assinale a alternativa correta.',
+                options: [
+                    'A) A curatela afetará tão somente os atos relacionados aos direitos de natureza negocial.',
+                    'B) A definição da curatela não alcança o direito ao próprio corpo, à sexualidade, ao patrimônio, à privacidade, à educação, à saúde, ao trabalho e ao voto.',
+                    'C) No caso de pessoa em situação de institucionalização, ao nomear curador, o juiz deve dar preferência, na seguinte ordem, a pessoa que tenha vínculo de natureza afetiva, familiar ou comunitária com o curatelado.',
+                    'D) É facultado à pessoa com deficiência, desde que submetida à curatela, a adoção de processo de tomada de decisão apoiada.',
+                    'E) Para emissão de documentos oficiais, não será exigida a situação de curatela da pessoa com deficiência.'
+                ],
+                answer: 'E',
+                comment: 'Comentários<br>A alternativa A está incorreta. A curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial. Nesse sentido, está o art. 85, caput, da Lei nº 13.146/15:<br><br>Art. 85. A curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial.<br><br>A alternativa B está incorreta. A definição da curatela não alcança o direito ao próprio corpo, à sexualidade, ao matrimônio (e não ao patrimônio), à privacidade, à educação, à saúde, ao trabalho e ao voto. É o que dispõe o §1º, do art. 85, do Estatuto da Pessoa com Deficiência:<br><br>Art. 85. § 1º A definição da curatela não alcança o direito ao próprio corpo, à sexualidade, ao matrimônio, à privacidade, à educação, à saúde, ao trabalho e ao voto.<br><br>A alternativa C está incorreta. Em hipóteses excepcionais, a pessoa com deficiência poderá precisar de internação em instituição de atendimento especializado. Nesse caso, para a decisão do curador, o magistrado deverá dar preferência a uma pessoa que tenha laços (proximidade) com a pessoa com deficiência. Esses laços podem ser de ordem familiar, afetiva ou comunitária.<br><br>Art. 84. § 3º No caso de pessoa em situação de institucionalização, ao nomear curador, o juiz deve dar preferência a pessoa que tenha vínculo de natureza familiar, afetiva ou comunitária com o curatelado.<br><br>A alternativa D está incorreta. Prevê o art. 84, §2º, da Lei nº 13.146/2015 que é facultado à pessoa com deficiência a adoção de processo de tomada de decisão apoiada, independentemente da submissão à curatela:<br><br>Art. 84. §2º É facultado à pessoa com deficiência a adoção de processo de TOMADA DE DECISÃO APOIADA.<br><br>A alternativa E está correta e é o gabarito da questão. Conforme prevê o art. 86, do Estatuto, a curatela não pode ser utilizada como requisito para a emissão de documentos oficiais. Ou seja, não poderá ser exigida, por exemplo, para a emissão de carteira de identidade ou do passaporte, por entender a legislação que a emissão desses documentos constitui ato de natureza personalíssima. Veja:<br><br>Art. 86. Para emissão de documentos oficiais, NÃO será exigida a situação de curatela da pessoa com deficiência.'
+            },
+            {
+                question: '20. (VUNESP/Procurador Municipal de Santos - 2021) O Estatuto da Pessoa com Deficiência assegura-lhe o direito ao exercício de sua capacidade legal, salientando- se que',
+                options: [
+                    'A) se faculta à pessoa portadora de deficiência fazer uso da curatela.',
+                    'B) se deve submeter à adoção de processo de tomada de decisão apoiada.',
+                    'C) quando lhe for definida curatela, esta durará o maior tempo possível.',
+                    'D) os curadores são obrigados a prestar, semestralmente, contas de sua administração ao juiz, apresentando o balanço do respectivo ano.',
+                    'E) a curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial.'
+                ],
+                answer: 'E',
+                comment: 'Comentários <br>A alternativa A é incorreta. A lei faculta à pessoa com deficiência a adoção do processo de tomada de decisão apoiada, mas a curatela é aplicável quando for necessário, independentemente da vontade da pessoa com deficiência:<br><br>Art. 84. [...] <br>§ 1º Quando necessário, a pessoa com deficiência será submetida à curatela, conforme a lei.<br>§ 2º É facultado à pessoa com deficiência a adoção de processo de tomada de decisão apoiada.<br><br>A alternativa B é incorreta. Como acabamos de ver, é facultativa a adoção do processo de tomada de decisão apoiada.<br><br>A alternativa C é incorreta. De acordo com o art. 84, § 3º, a curatela é medida protetiva extraordinária, proporcional às necessidades e às circunstâncias de cada cura, devendo durar o menor tempo possível:<br><br>Art. 84. [...]<br>§ 3º A definição de curatela de pessoa com deficiência constitui medida protetiva extraordinária, proporcional às necessidades e às circunstâncias de cada caso, e durará o menor tempo possível.<br><br>A alternativa D é incorreta. A prestação de contas é anual:<br><br>Art. 84. [...]<br>§ 4º Os curadores são obrigados a prestar, anualmente, contas de sua administração ao juiz, apresentando o balanço do respectivo ano.<br><br>A alternativa E é correta e é o gabarito da questão. A curatela afeta apenas os direitos de natureza patrimonial e negocial:<br><br>Art. 85. A curatela afetará tão somente os atos relacionados aos direitos de natureza patrimonial e negocial.'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let score = 0;
+
+        const quizArea = document.getElementById('quiz-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Função para renderizar uma questão
+        function renderQuestion(index) {
+            quizArea.innerHTML = '';
+            const q = questions[index];
+
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            
+            questionCard.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="options-list" id="options-list-${index}"></div>
+                <div id="result-${index}" class="result-section">
+                    <div class="result-title"></div>
+                    <div class="result-content"></div>
+                </div>
+            `;
+
+            const optionsList = questionCard.querySelector(`#options-list-${index}`);
+            q.options.forEach((option, i) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-button';
+                optionBtn.innerHTML = option;
+                optionBtn.setAttribute('data-index', i);
+                optionBtn.setAttribute('data-letter', String.fromCharCode(65 + i));
+                optionsList.appendChild(optionBtn);
+
+                optionBtn.addEventListener('click', () => {
+                    // Impede de selecionar outra resposta se já foi respondida
+                    if (!userAnswers[index]) {
+                        userAnswers[index] = optionBtn.getAttribute('data-letter');
+                        checkAnswer(index);
+                        updateQuizState(); // Habilita o botão Próxima após a resposta
+                    }
+                });
+            });
+
+            quizArea.appendChild(questionCard);
+            
+            // Se a pergunta já foi respondida, exibe o resultado
+            if (userAnswers[index]) {
+                checkAnswer(index, true);
+            }
+            updateQuizState();
+        }
+
+        // Função para verificar a resposta e exibir o resultado/comentário
+        function checkAnswer(index, isReload = false) {
+            const resultSection = document.getElementById(`result-${index}`);
+            const optionsList = document.getElementById(`options-list-${index}`);
+            const question = questions[index];
+            const userAnswer = userAnswers[index];
+            const correctLetter = question.answer;
+            let isCorrect = false;
+
+            if (userAnswer && userAnswer.toUpperCase() === correctLetter) {
+                isCorrect = true;
+                if (!isReload) {
+                    score++;
+                }
+            }
+
+            // Exibe a resposta correta e a do usuário
+            optionsList.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true; // Desabilita todos os botões após a resposta
+                const optionLetter = btn.getAttribute('data-letter').toUpperCase();
+                if (optionLetter === correctLetter) {
+                    btn.classList.add('correct');
+                }
+                if (optionLetter === userAnswer && optionLetter !== correctLetter) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Exibe a seção de comentário
+            resultSection.style.display = 'block';
+            resultSection.querySelector('.result-title').innerText = isCorrect ? 'Resposta Correta!' : 'Resposta Incorreta.';
+            resultSection.querySelector('.result-content').innerHTML = question.comment;
+        }
+
+        // Função para atualizar os botões de navegação e o contador
+        function updateQuizState() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const hasAnsweredCurrentQuestion = !!userAnswers[currentQuestionIndex];
+            
+            // O botão "Próxima" só é habilitado se a pergunta atual foi respondida
+            // e não for a última pergunta.
+            nextBtn.disabled = !hasAnsweredCurrentQuestion || currentQuestionIndex === questions.length - 1;
+            
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1+10} de ${questions.length+10}`;
+
+            // Se for a última pergunta e ela foi respondida, exibe o placar final
+            if (currentQuestionIndex === questions.length - 1 && hasAnsweredCurrentQuestion) {
+                showFinalScore();
+            } else {
+                finalScoreDisplay.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+            }
+        }
+
+        // Função para mostrar o placar final
+        function showFinalScore() {
+            finalScoreDisplay.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            finalScoreDisplay.innerText = `Seu desempenho final: ${score} de ${questions.length} perguntas corretas!`;
+        }
+
+        // Listeners para a navegação
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            score = 0;
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Inicia o quiz
+        renderQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
